@@ -1,8 +1,7 @@
 #pragma once
-#include <afxdialogex.h> // Required for CDialogEx
 
 // CEditGridDlg dialog
-class CEditGridDlg : public CDialogEx
+class CEditGridDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CEditGridDlg)
 
@@ -18,11 +17,11 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CButton m_OK;
-	CButton m_Cancel;
-	CButton m_SnapTo; // Assuming this is a checkbox or button
-	CEdit m_Height;
-	CEdit m_Width;
+	CExtButton m_OK;
+	CExtButton m_Cancel;
+	CExtButton m_SnapTo;
+	CExtEdit m_Height;
+	CExtEdit m_Width;
 
 	CString m_OldWidth, m_OldHeight;
 	bool m_OldSnapTo;

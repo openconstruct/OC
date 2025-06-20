@@ -1,16 +1,15 @@
 #pragma once
-#include "afxcmn.h"     // For CProgressCtrl, CListCtrl
-#include "afxwin.h"     // For CButton
-#include <afxdialogex.h> // Required for CDialogEx
+#include "afxcmn.h"
+#include "afxwin.h"
 
-#include "..\Utilities\CWebUpdate.h" // Custom class, assumed independent or separately refactored
+#include "..\Utilities\CWebUpdate.h"
 
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
 // CUpdateDlg dialog
 
-class CUpdateDlg : public CDialogEx // Changed base class
+class CUpdateDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CUpdateDlg)
 
@@ -18,10 +17,10 @@ public:
 	CUpdateDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CUpdateDlg();
 
-	CWebUpdate m_UpdateObj; // Custom class
+	CWebUpdate m_UpdateObj;
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
 
 // Dialog Data
 	enum { IDD = IDD_UPDATE };
@@ -31,9 +30,9 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CProgressCtrl	m_Progress; // Already standard
-	CListCtrl		m_Files;    // Already standard
-	CButton		m_Download, m_Cancel; // Changed from CExtButton
+	CProgressCtrl	m_Progress;
+	CListCtrl		m_Files;
+	CExtButton		m_Download, m_Cancel;
 	HRESULT			hr;
 
 	CStringArray	m_URLs;

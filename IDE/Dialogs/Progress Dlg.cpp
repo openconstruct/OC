@@ -8,10 +8,10 @@
 
 // CProgressDlg dialog
 
-IMPLEMENT_DYNAMIC(CProgressDlg, CDialogEx) // Changed base class
+IMPLEMENT_DYNAMIC(CProgressDlg, CDialog)
 
 CProgressDlg::CProgressDlg(CString status, CWnd* pParent /*=NULL*/)
-	: CDialogEx(CProgressDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CProgressDlg::IDD, pParent)
 {
 	m_StatusText = status;
 	progress = 0;	
@@ -22,20 +22,13 @@ void CProgressDlg::Start(CString status)
 	if (status != "")
 		m_StatusText = status;
 
-	Create(IDD_PROGRESSDLG); // This should be fine, CDialogEx::Create
-	// SetProgress(0); // SetProgress calls m_Status.SetWindowText, ensure m_Status is valid (OnInitDialog usually handles DDX)
-                   // If Create() doesn't run full DDX, this might be an issue here.
-                   // Usually, one would call DoModal or Create then ShowWindow, and OnInitDialog would setup controls.
-                   // For a modeless dialog started with Create, OnInitDialog IS called.
-                   // This call to SetProgress(0) should be okay if OnInitDialog has run or will run before actual painting.
-                   // To be safe, ensure control interaction happens after OnInitDialog.
-                   // The original code calls SetProgress(0) after Create() which should be okay.
+	Create(IDD_PROGRESSDLG);
 	SetProgress(0);
 }
 
 BOOL CProgressDlg::OnInitDialog()
 {
-	BOOL ret = CDialogEx::OnInitDialog(); // Changed base class
+	BOOL ret = CDialog::OnInitDialog();
 
 	CenterWindow();
 	ShowWindow(SW_SHOW);
@@ -48,7 +41,7 @@ BOOL CProgressDlg::OnInitDialog()
 	m_Progress.SetPos(0);
 	m_Progress.Invalidate();
 
-	// SubclassChildControls(); // Removed Prof-UIS specific call
+	SubclassChildControls();
 
 	return ret;
 }
@@ -73,13 +66,13 @@ CProgressDlg::~CProgressDlg()
 
 void CProgressDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATUS, m_Status);
 	DDX_Control(pDX, IDC_PROGRESS1, m_Progress);
 }
 
 
-BEGIN_MESSAGE_MAP(CProgressDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CProgressDlg, CDialog)
 END_MESSAGE_MAP()
 
 

@@ -10,9 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFirstStartDlg dialog
 
-#include <afxdialogex.h> // Required for CDialogEx
-
-class CFirstStartDlg : public CDialogEx
+class CFirstStartDlg : public CDialog
 {
 // Construction
 public:
@@ -22,9 +20,9 @@ public:
 	//{{AFX_DATA(CFirstStartDlg)
 	enum { IDD = IDD_FIRSTSTART };
 	CStatic	m_Information;
-	CButton	m_Help;
-	CButton	m_Done;
-	CComboBox	m_Language;
+	CExtButton	m_Help;
+	CExtButton	m_Done;
+	CExtComboBox	m_Language;
 	//}}AFX_DATA
 
 	CString chosenLanguage;

@@ -1,12 +1,11 @@
 #pragma once
-#include <afxdialogex.h> // Required for CDialogEx
 
 // CNewTransitionDlg dialog
 
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
-class CNewTransitionDlg : public CDialogEx // Changed base class
+class CNewTransitionDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CNewTransitionDlg)
 
@@ -17,13 +16,13 @@ public:
 	CNewTransitionDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CNewTransitionDlg();
 	virtual BOOL OnInitDialog();
-	CListCtrl m_Transitions; // Already standard
+	CListCtrl m_Transitions;
 	void OnOK();
 
-	CButton m_OK, m_Cancel; // Changed from CExtButton
+	CExtButton m_OK, m_Cancel;
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
 
 // Dialog Data
 	enum { IDD = IDD_NEWTRANSITION };

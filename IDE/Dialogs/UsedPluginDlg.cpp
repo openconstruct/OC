@@ -13,23 +13,22 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // UsedPluginDialog dialog
-IMPLEMENT_DYNAMIC(UsedPluginDialog, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 UsedPluginDialog::UsedPluginDialog(CApplication* application_) : 
-	CDialogEx(UsedPluginDialog::IDD, NULL), // Changed base class
+	CExtNCW<CExtResizableDialog>(UsedPluginDialog::IDD, NULL),
 	application(application_)
 {
 }
 
 void UsedPluginDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CExtNCW<CExtResizableDialog>::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_INFORMATION, information);
 	DDX_Control(pDX, IDCLOSE, close);
 	DDX_Control(pDX, IDC_OBJECTS, objects);
 }
 
-BEGIN_MESSAGE_MAP(UsedPluginDialog, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(UsedPluginDialog, CExtResizableDialog)
 	ON_BN_CLICKED(IDCLOSE, OnClose)
 	ON_BN_CLICKED(IDC_INFORMATION, OnInformation)
 	ON_WM_SIZE()
@@ -41,7 +40,7 @@ END_MESSAGE_MAP()
 
 BOOL UsedPluginDialog::OnInitDialog() 
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CExtNCW<CExtResizableDialog>::OnInitDialog();
 	
 	objects.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
@@ -49,7 +48,6 @@ BOOL UsedPluginDialog::OnInitDialog()
 	objects.InsertColumn(1, "Creator", LVCFMT_LEFT, 110);
 	objects.InsertColumn(2, "License", LVCFMT_LEFT, 100);
 
-	// dialog_manager and dialog_anchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_manager.Load(this->m_hWnd, "Software\\Construct\\UsedPlugins");
     dialog_anchor.Init(this->m_hWnd);
 
@@ -122,7 +120,7 @@ BOOL UsedPluginDialog::OnInitDialog()
 
 void UsedPluginDialog::OnClose() 
 {
-	CDialogEx::OnCancel(); // Changed base class
+	CDialog::OnCancel();
 }
 
 void UsedPluginDialog::OnInformation() 
@@ -141,9 +139,8 @@ void UsedPluginDialog::OnInformation()
 
 void UsedPluginDialog::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dialog_anchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_anchor.OnSize();		
 
 	Invalidate();
@@ -151,8 +148,7 @@ void UsedPluginDialog::OnSize(UINT nType, int cx, int cy)
 
 void UsedPluginDialog::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dialog_manager is potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_manager.Save();	
 }

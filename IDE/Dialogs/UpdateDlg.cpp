@@ -18,10 +18,10 @@ void DownloadFile(void* Data)
 }
 
 // CUpdateDlg dialog
-IMPLEMENT_DYNAMIC(CUpdateDlg, CDialogEx) // Changed base class
+IMPLEMENT_DYNAMIC(CUpdateDlg, CDialog)
 
 CUpdateDlg::CUpdateDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CUpdateDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CUpdateDlg::IDD, pParent)
 {
 
 }
@@ -32,14 +32,14 @@ CUpdateDlg::~CUpdateDlg()
 
 void CUpdateDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_PROGRESS, m_Progress);
 	DDX_Control(pDX, IDC_FILES, m_Files);
 	DDX_Control(pDX, IDC_DOWNLOAD, m_Download);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 }
 
-BEGIN_MESSAGE_MAP(CUpdateDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CUpdateDlg, CDialog)
 	ON_BN_CLICKED(IDC_DOWNLOAD, &CUpdateDlg::OnBnClickedDownload)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -48,14 +48,14 @@ END_MESSAGE_MAP()
 // CUpdateDlg message handlers
 BOOL CUpdateDlg::OnInitDialog() 
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CDialog::OnInitDialog();
 	
 	m_Files.SetExtendedStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 	m_Files.InsertColumn(0, "Name", 0, 120);
 	m_Files.InsertColumn(1, "Description", 0, 280);
 
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\UpdateDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -276,9 +276,8 @@ void CUpdateDlg::OnBnClickedDownload()
 
 void CUpdateDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();
@@ -286,8 +285,7 @@ void CUpdateDlg::OnSize(UINT nType, int cx, int cy)
 
 void CUpdateDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }

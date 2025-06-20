@@ -394,7 +394,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/Zm192"
 				Optimization="0"
-				AdditionalIncludeDirectories=" libs\"
+				AdditionalIncludeDirectories="libs\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;XLISTCTRLLIB_STATIC;XLISTCTRLLIB_NOAUTOLIB;DEBUGBUILD"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -3085,6 +3085,10 @@
 			</File>
 			<File
 				RelativePath=".\Dialogs\PythonLibs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LIBs\Include\Resources\resource.h"
 				>
 			</File>
 			<File

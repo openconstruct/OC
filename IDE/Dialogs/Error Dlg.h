@@ -10,9 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CErrorDlg dialog
 
-#include <afxdialogex.h> // Required for CDialogEx
-
-class CErrorDlg : public CDialogEx
+class CErrorDlg : public CExtWS<CDialog>
 {
 // Construction
 public:
@@ -21,9 +19,9 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CErrorDlg)
 	enum { IDD = IDD_ERROR };
-	CButton m_OK;
+	CExtButton m_OK;
 	CEdit m_Message;
-	CButton m_Cancel;
+	CExtButton m_Cancel;
 	//}}AFX_DATA
 
 	// Call error

@@ -6,10 +6,10 @@
 #include "ManageFamiliesDlg.h"
 #include "ImageEditorDlg.h"
 // CManageFamiliesDlg dialog
-IMPLEMENT_DYNAMIC(CManageFamiliesDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC with CDialogEx
+//IMPLEMENT_DYNAMIC(CManageFamiliesDlg, CDialog)
 
 CManageFamiliesDlg::CManageFamiliesDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CManageFamiliesDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CManageFamiliesDlg::IDD, pParent)
 {
 
 }
@@ -20,20 +20,17 @@ CManageFamiliesDlg::~CManageFamiliesDlg()
 
 void CManageFamiliesDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_ADD, m_Add);
 	DDX_Control(pDX, IDC_REMOVE, m_Remove);
-	DDX_Control(pDX, IDOK, m_Close); // m_Close is used for IDOK
-	// DDX_Control for m_Edit (IDC_RENAME from header message map) and m_Cancel (IDCANCEL) are missing
-	// This might indicate they are either unused or handled implicitly (IDCANCEL)
+	DDX_Control(pDX, IDOK, m_Close);
 	DDX_Control(pDX, IDC_LIST, m_List);
 	DDX_Control(pDX, IDC_NAME, m_Name);
 }
 
-BEGIN_MESSAGE_MAP(CManageFamiliesDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CManageFamiliesDlg, CDialog)
 	ON_BN_CLICKED(IDC_ADD, &CManageFamiliesDlg::OnBnClickedAdd)
 	ON_BN_CLICKED(IDC_REMOVE, &CManageFamiliesDlg::OnBnClickedRemove)
-	// ON_BN_CLICKED(IDC_RENAME, &CManageFamiliesDlg::OnBnClickedRename) // In header's map, but no OnBnClickedRename in CPP
 	ON_NOTIFY(LVN_KEYDOWN, IDC_LIST, &CManageFamiliesDlg::OnLvnKeydown)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -42,17 +39,21 @@ END_MESSAGE_MAP()
 // CManageFamiliesDlg message handlers
 BOOL CManageFamiliesDlg::OnInitDialog()
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CDialog::OnInitDialog();
 
-	// CExtBitmap and SetIcon calls removed.
-	// Standard CButton icon setting would require HICONs.
+	CExtBitmap Bitmap;
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONADD));
+	m_Add.SetIcon(Bitmap.CreateHICON());
+
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONDELETE));
+	m_Remove.SetIcon(Bitmap.CreateHICON());
 
 	// Default column needed
 	m_List.InsertColumn(0, "Name", LVCFMT_LEFT, 200);
 
 	RefreshFamilies();
 
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\FamiliesMgr2");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -69,9 +70,8 @@ BOOL CManageFamiliesDlg::OnInitDialog()
 
 void CManageFamiliesDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
@@ -272,9 +272,8 @@ void CManageFamiliesDlg::OnBnClickedAdd()
 
 void CManageFamiliesDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();

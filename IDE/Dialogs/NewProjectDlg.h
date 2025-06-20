@@ -1,9 +1,8 @@
 #pragma once
 #include "afxwin.h"
-#include <afxdialogex.h> // Required for CDialogEx
 
 // CNewProjectDlg dialog
-class CNewProjectDlg : public CDialogEx
+class CNewProjectDlg : public CDialog
 {
 	DECLARE_DYNAMIC(CNewProjectDlg)
 
@@ -20,9 +19,9 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	CComboBox m_Profile;
-	CButton m_EditProfiles;
-	CEdit m_Name;
-	CButton m_OK;
+	CExtButton m_EditProfiles;
+	CExtEdit m_Name;
+	CExtButton m_OK;
 public:
 	afx_msg void OnBnClickedOk();
 public:

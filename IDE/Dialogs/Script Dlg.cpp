@@ -5,10 +5,10 @@
 #include "Popup dialogs\Snippets Dlg.h"
 #include "..\resource.h"
 
-IMPLEMENT_DYNAMIC(CScriptDlg, CDialogEx) // Changed base class
+IMPLEMENT_DYNAMIC(CScriptDlg, CDialog)
 
 CScriptDlg::CScriptDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CScriptDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CScriptDlg::IDD, pParent)
 {
 	pApp = 0;
 
@@ -23,19 +23,19 @@ CScriptDlg::~CScriptDlg()
 
 void CScriptDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDC_HELPLINE, m_HelpLine);
 	DDX_Control(pDX, IDC_FUNCTIONS, m_Functions);
 	DDX_Control(pDX, IDC_CLASSES, m_Classes);
-	// DDX_Control(pDX, IDC_TOOLBAR, m_wndToolBar); // CToolBar is not typically DDX'd by ID like this. Creation is manual.
+	DDX_Control(pDX, IDC_TOOLBAR, m_wndToolBar);
 }
 
-BEGIN_MESSAGE_MAP(CScriptDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CScriptDlg, CExtResizableDialog)
 	ON_BN_CLICKED(IDOK, OnOk)
-	ON_CLBN_CHKCHANGE(IDC_CLASSES, OnCheckClass) // CCheckListBox notification
-	ON_LBN_DBLCLK(IDC_FUNCTIONS, OnDblClickFunction) // CListBox notification
+	ON_CLBN_CHKCHANGE(IDC_CLASSES, OnCheckClass)
+	ON_LBN_DBLCLK(IDC_FUNCTIONS, OnDblClickFunction)
 	ON_LBN_SELCHANGE(IDC_FUNCTIONS, OnFunctionSelChange)
 	ON_EN_CHANGE(IDC_HELP, &CScriptDlg::OnEnChangeHelp)
 	ON_WM_SIZE()
@@ -152,12 +152,12 @@ void CScriptDlg::OnOk()
 {
 	m_script = m_Script.GetText();
 
-	CDialogEx::OnOK();	// Changed base class
+	CDialog::OnOK();
 }
 
 BOOL CScriptDlg::OnInitDialog() 
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CExtResizableDialog::OnInitDialog();
 
 	CRect WindowRect;
 	CWnd* pSize = GetDlgItem(IDC_SCRIPT);
@@ -186,8 +186,6 @@ BOOL CScriptDlg::OnInitDialog()
 	SetPythonStyle(m_Script);
 
 	// Remove margins to the left
-	// m_Help is also a CScintillaWnd, its creation isn't shown but assuming it's similar to m_Script
-	// This SendMessage should be fine if m_Help is properly created.
 	m_Help.SendMessage(SCI_SETMARGINWIDTHN, 0, 0);
 	m_Help.SendMessage(SCI_SETMARGINWIDTHN, 1, 0);
 
@@ -199,34 +197,22 @@ BOOL CScriptDlg::OnInitDialog()
 	UpdateList();
 	UpdateClassList();
 
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\ScriptDlg3a");
     dlgAnchor.Init(this->m_hWnd);
 
 	dlgAnchor.Add(IDC_HELPLINE, ANCHOR_TOP | ANCHOR_LEFT | ANCHOR_RIGHT);
-	dlgAnchor.Add(m_Script, ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT); // Anchoring CScintillaWnd
+	dlgAnchor.Add(m_Script, ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	dlgAnchor.Add(m_Help, ANCHOR_LEFT | ANCHOR_BOTTOM | ANCHOR_RIGHT);
 	dlgAnchor.Add(IDC_FUNCTIONS, ANCHOR_TOP | ANCHOR_RIGHT | ANCHOR_BOTTOM);
 	dlgAnchor.Add(IDC_CLASSES, ANCHOR_RIGHT | ANCHOR_BOTTOM);
 	dlgAnchor.Add(IDOK, ANCHOR_RIGHT | ANCHOR_BOTTOM);
 	dlgAnchor.Add(IDCANCEL, ANCHOR_RIGHT | ANCHOR_BOTTOM);
 
-	// Toolbar - CToolBar creation
-	if (m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) &&
-		m_wndToolBar.LoadToolBar(IDR_PYTHONTOOLBAR))
-	{
-		// Toolbar created successfully
-		m_wndToolBar.EnableDocking(0); // Disable docking for a dialog-hosted toolbar typically
-		// If IDC_TOOLBAR was a placeholder, it might need to be handled or toolbar positioned manually.
-		// For now, assuming RepositionBars will handle it.
-	}
-	else
-	{
-		TRACE0("Failed to create toolbar\n");
-	}
+	// Toolbar
+	m_wndToolBar.LoadToolBar(IDR_PYTHONTOOLBAR);
 
-	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
-
+	CWnd::RepositionBars(0,0xFFFF,0);
 
 	return TRUE;
 }
@@ -236,27 +222,24 @@ void CScriptDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	if (m_Snippets.m_hWnd)
 		m_Snippets.DestroyWindow();
 
-	CDialogEx::OnLButtonUp(nFlags, point); // Changed base class
+	CExtNCW<CExtResizableDialog>::OnLButtonUp(nFlags, point);
 }
 
 void CScriptDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
-	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
-
+	CWnd::RepositionBars(0,0xFFFF,0);
 
 	Invalidate();
 }
 
 void CScriptDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
@@ -1062,7 +1045,7 @@ BOOL CScriptDlg::PreTranslateMessage(MSG* pMsg)
 			*/
 		}
 	}
-	return CDialogEx::PreTranslateMessage(pMsg); // Changed base class
+	return CExtResizableDialog::PreTranslateMessage(pMsg);
 }
 
 

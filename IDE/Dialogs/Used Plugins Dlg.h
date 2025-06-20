@@ -1,13 +1,11 @@
 #pragma once
 
 #include "..\resource.h"
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
-#include <afxdialogex.h> // Required for CDialogEx
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
-class UsedPluginDialog : public CDialogEx // Changed base class
+class UsedPluginDialog : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(UsedPluginDialog) // Added DECLARE_DYNAMIC
 public:
 
 	UsedPluginDialog(CApplication*);  
@@ -15,15 +13,15 @@ public:
 protected:
 
 	enum { IDD = IDD_USEDPLUGINS };
-	CButton information; // Changed from CExtButton
-	CButton remove;      // Changed from CExtButton
-	CButton close;       // Changed from CExtButton
-	CListCtrl objects;   // Already standard
+	CExtButton information;
+	CExtButton remove;
+	CExtButton close;
+	CListCtrl objects;
 
 	CApplication* application;
 
-	CDlgAnchor dialog_anchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dialog_manager;   // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dialog_anchor;
+	CDlgMan dialog_manager;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();

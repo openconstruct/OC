@@ -1,14 +1,13 @@
 #pragma once
 #include "afxwin.h"
 #include "afxcmn.h"
-#include <afxdialogex.h> // Required for CDialogEx
 
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
 // CAddNewTraitDlg dialog
 
-class CAddNewTraitDlg : public CDialogEx // Changed base class
+class CAddNewTraitDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CAddNewTraitDlg)
 
@@ -16,11 +15,11 @@ public:
 	CAddNewTraitDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CAddNewTraitDlg();
 
-	CButton m_Add, m_Remove, m_Edit, m_Close; // Changed from CExtButton
+	CExtButton m_Add, m_Remove, m_Edit, m_Close;
 
 	BOOL OnInitDialog();
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
 	CDlgMan dlgMan;
 
 	bool TraitNameExists(CString Name);

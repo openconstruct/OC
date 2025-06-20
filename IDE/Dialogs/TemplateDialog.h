@@ -7,11 +7,9 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // TemplateDialog dialog
-#include <afxdialogex.h> // Required for CDialogEx
 
-class TemplateDialog : public CDialogEx // Changed base class
+class TemplateDialog : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(TemplateDialog) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	TemplateDialog(CWnd* pParent = NULL);   // standard constructor
@@ -19,14 +17,14 @@ public:
 // Dialog Data
 	//{{AFX_DATA(TemplateDialog)
 	enum { IDD = IDD_NTEMPLATE };
-	CListCtrl	m_Templates; // Already standard
-	CEdit		m_Name;      // Already standard
-	CButton	m_Create;    // Changed from CExtButton
-	CButton	m_Cancel;    // Changed from CExtButton
-	CEdit		m_Author;    // Already standard
+	CListCtrl	m_Templates;
+	CEdit		m_Name;
+	CExtButton	m_Create;
+	CExtButton	m_Cancel;
+	CEdit		m_Author;
 	//}}AFX_DATA
 
-	CImageList imageList; // Already standard
+	CImageList imageList;
 	void OnDblClkTemplates(NMHDR *pNMHDR, LRESULT *pResult);
 
 // Overrides

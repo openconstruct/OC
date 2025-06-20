@@ -7,10 +7,10 @@
 #include "AddVariableDlg.h"
 
 // CManageVariableDlg dialog
-IMPLEMENT_DYNAMIC(CManageVariableDlg, CDialogEx) // Changed base class
+IMPLEMENT_DYNAMIC(CManageVariableDlg, CDialog)
 
 CManageVariableDlg::CManageVariableDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CManageVariableDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CManageVariableDlg::IDD, pParent)
 {
 	pType = NULL;
 	layout = NULL;
@@ -23,7 +23,7 @@ CManageVariableDlg::~CManageVariableDlg()
 
 void CManageVariableDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_ADD, m_Add);
 	DDX_Control(pDX, IDC_RENAME, m_Edit);
 	DDX_Control(pDX, IDC_REMOVE, m_Remove);
@@ -33,7 +33,7 @@ void CManageVariableDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MOVEDOWN, m_MoveDown);
 }
 
-BEGIN_MESSAGE_MAP(CManageVariableDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CManageVariableDlg, CDialog)
 	ON_BN_CLICKED(IDC_ADD, &CManageVariableDlg::OnBnClickedAdd)
 	ON_BN_CLICKED(IDC_REMOVE, &CManageVariableDlg::OnBnClickedRemove)
 	ON_BN_CLICKED(IDC_RENAME, &CManageVariableDlg::OnBnClickedRename)
@@ -49,9 +49,8 @@ END_MESSAGE_MAP()
 
 void CManageVariableDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
@@ -176,11 +175,33 @@ int CManageVariableDlg::GetNameType(CString type)
 
 BOOL CManageVariableDlg::OnInitDialog()
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CExtNCW<CExtResizableDialog>::OnInitDialog();
 
-	// CExtBitmap, SetIcon, SetDrawBorder, SetFlat calls removed.
-	// Standard CButton does not have these methods for styling.
-	// Icons would need LoadImage or similar for HICON and CButton::SetIcon.
+	CExtBitmap Bitmap;
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONADD));
+	m_Add.SetIcon(Bitmap.CreateHICON());
+	m_Add.SetDrawBorder(FALSE);
+	m_Add.SetFlat();
+
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONDELETE));
+	m_Remove.SetIcon(Bitmap.CreateHICON());
+	m_Remove.SetDrawBorder(FALSE);
+	m_Remove.SetFlat();
+
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONEDIT));
+	m_Edit.SetIcon(Bitmap.CreateHICON());
+	m_Edit.SetDrawBorder(FALSE);
+	m_Edit.SetFlat();
+
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_UPARROW));
+	m_MoveUp.SetIcon(Bitmap.CreateHICON());
+	m_MoveUp.SetDrawBorder(FALSE);
+	m_MoveUp.SetFlat();
+
+	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_DOWNARROW));
+	m_MoveDown.SetIcon(Bitmap.CreateHICON());
+	m_MoveDown.SetDrawBorder(FALSE);
+	m_MoveDown.SetFlat();
 
 	m_List.InsertColumn(0, "Name", LVCFMT_LEFT, 150);
 	m_List.InsertColumn(1, "Type", LVCFMT_LEFT, 50);
@@ -190,7 +211,7 @@ BOOL CManageVariableDlg::OnInitDialog()
 	
 	RefreshVariablesList();
 
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\ManageVariableDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -440,14 +461,13 @@ void CManageVariableDlg::OnBnClickedOk()
 {
 	// Save variables info
 
-	CDialogEx::OnOK(); // Changed base class
+	CDialog::OnOK();
 }
 
 void CManageVariableDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();

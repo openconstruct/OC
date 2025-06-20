@@ -8,9 +8,9 @@
 // ParametersDlg.h : header file
 #include "..\Utilities\anchor.h"
 #include "..\Utilities\dlgman.h"
-// #include "..\UI Elements\StackedWndCtrl.h" // CStackedWndCtrl - Major Prof-UIS dependency, will be placeholder CWnd
-#include "..\UI Elements\TellTaleButton.h"   // Assuming standard CButton or custom CWnd based
-#include "..\UI Elements\JazzUpTellTaleButton.h"// Assuming standard CButton or custom CWnd based
+#include "..\UI Elements\StackedWndCtrl.h"
+#include "..\UI Elements\TellTaleButton.h"
+#include "..\UI Elements\JazzUpTellTaleButton.h"
 #include "..\Structure\SystemObject.h"
 #include "..\UI Elements\ParamScintilla.h"
 #include "..\MainFrm.h"
@@ -41,19 +41,15 @@ public:
 	int index;
 };
 
-#include <vector> // For std::vector
-using std::vector; // Make vector usable without std:: prefix
-
-class CParametersDlg : public CDialogEx // Changed from CExtResizableDialog
+class CParametersDlg : public CExtResizableDialog
 {
-	DECLARE_DYNAMIC(CParametersDlg) // Added DECLARE_DYNAMIC
 public:
 	vector<CComboItemData> m_combodata;
 
 // Construction
 public:
 	void ResizeScintilla(CScintillaWnd& scintWin);
-	// friend class CStackedWndCtrl; // Commented out due to CStackedWndCtrl being replaced by CWnd
+	friend class CStackedWndCtrl;
 
 	CLayout* layout;
 	CApplication* application;
@@ -69,30 +65,30 @@ public:
 
 	vector<HWND> m_scintillaList;
 
-	// CCtrlMessageBar	message_bar; // Prof-UIS, commented out
+	CCtrlMessageBar	message_bar;
 
 	void OnDblClick(NMHDR* pNMHDR, LRESULT* pResult);
 
 // Dialog Data
 	//{{AFX_DATA(CParametersDlg)
 	enum { IDD = IDD_PARAMETERS };
-	CComboBox	m_AceCombo; // Changed from CExtComboBox
-	CListCtrl	m_Expand;   // Already standard
-	//CButton	m_Toolbox; // Was CExtButton, assuming it's a CButton. DDX will confirm.
+	CExtComboBox	m_AceCombo;
+	CListCtrl	m_Expand;
+	//CExtButton	m_Toolbox;
 
 	// Error checking
 	CStringArray m_Errors;
 	void SetScintillaColour(CScintillaWnd* pWindow, long Colour);
 
-	CEdit m_Parameter; // Changed from CExtEdit
-	CStatic m_Desc;    // Changed from CExtLabel
+	CExtEdit m_Parameter;
+	CExtLabel m_Desc;
 
 
 	TDS_PANE Current;
-	CWnd	m_Stack; // Changed from CStackedWndCtrl - MAJOR CHANGE, functionality will break
+	CStackedWndCtrl	m_Stack;
 
 	// Imagelists
-	CImageList imageList; // Already standard
+	CImageList imageList;
 
 	CScintillaWnd* p_scintWin;
 
@@ -120,8 +116,8 @@ public:
 	vector<int> types;
 
 	// Type checking
-	CScintillaWnd* m_pWindow; // Scintilla is 3rd party, not Prof-UIS
-	CStatic m_Number;  // Changed from CExtLabel
+	CScintillaWnd* m_pWindow;
+	CExtLabel m_Number;
 
 	// Parameter tooltip
 	bool              m_ParameterTooltipIsVisible;
@@ -137,10 +133,10 @@ public:
 	void ChangeParameterType();
 
 	CScintillaWnd*		CreateScintillaParameter(CWnd* pParent, LPCSTR DefaultText, int iID);
-	CButton*	CreateColourParameter(CWnd* pParent, int iDefaultColour); // Changed from CExtColorButton*
-	CComboBox*		CreateComboBoxParameter(CWnd* pParent, LPCSTR Items = NULL, bool bVariable = false); // Changed from CExtComboBox*
+	CExtColorButton*	CreateColourParameter(CWnd* pParent, int iDefaultColour);
+	CExtComboBox*		CreateComboBoxParameter(CWnd* pParent, LPCSTR Items = NULL, bool bVariable = false);
 
-	CHotKeyCtrl*		CreateHotKeyParameter(CWnd* pParent, int KeyID); // Already standard
+	CHotKeyCtrl*		CreateHotKeyParameter(CWnd* pParent, int KeyID);
 
 	// Force close
 	bool bForce;
@@ -151,7 +147,6 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
-	// Scintilla specific messages, not Prof-UIS related
 	afx_msg void OnChar(NMHDR* pNMHDR, LRESULT* pResult,CScintillaWnd& scintWin);
 	afx_msg void OnChange(NMHDR* pNMHDR, LRESULT* pResult,CScintillaWnd& scintWin);
 	afx_msg void OnFocusChange(UINT nID);
@@ -161,9 +156,9 @@ public:
 
 	// Generated message map functions
 	//{{AFX_MSG(CParametersDlg)
-	bool OnFinish(); // This is custom, not an override in this form
+	bool OnFinish();
 	virtual BOOL OnInitDialog();
-	afx_msg void OnRButtonUp(UINT nFlags, CPoint point); // Already standard message
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg LRESULT OnParamChanged(WPARAM w, LPARAM l);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnCancel();

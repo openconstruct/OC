@@ -1,20 +1,18 @@
 #ifndef _ABOUTDLG_H_
 #define _ABOUTDLG_H_
 
-#include <afxdialogex.h> // Required for CDialogEx
-
-class CAboutDlg : public CDialogEx
+class CAboutDlg : public CExtNCW<CExtResizableDialog>
 {
 public:
 	CAboutDlg();
 
 
 	enum { IDD = IDD_ABOUTBOX };
-	CStatic	m_People;
-	CStatic	m_BuildDate;
+	CExtLabel	m_People;
+	CExtLabel	m_BuildDate;
 
-	CButton     m_OK;
-	CButton   m_Group;
+	CExtButton     m_OK;
+	CExtGroupBox   m_Group;
 	//}}AFX_DATA
 
 	protected:

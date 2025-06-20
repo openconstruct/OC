@@ -1,17 +1,13 @@
 #pragma once
-#include <vector> // For std::vector
-using std::vector; // Make vector usable without std:: prefix
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
-#include <afxdialogex.h> // Required for CDialogEx
 
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CNewBehaviorDlg dialog
 
-class CNewBehaviorDlg : public CDialogEx // Changed base class
+class CNewBehaviorDlg : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(CNewBehaviorDlg) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	CNewBehaviorDlg(CWnd* pParent = NULL);   // standard constructor
@@ -19,10 +15,10 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CNewBehaviorDlg)
 	enum { IDD = IDD_NEWMOVEMENT };
-	CListCtrl	m_List;    // Already standard
-	CButton	m_Cancel;  // Changed from CExtButton
-	CButton	m_OK;      // Changed from CExtButton
-	CEdit	m_Desc;    // Changed from CExtEdit
+	CListCtrl	m_List;
+	CExtButton	m_Cancel;
+	CExtButton	m_OK;
+	CExtEdit	m_Desc;
 
 	vector<int> behaviors;
 
@@ -30,8 +26,8 @@ public:
 
 	CImageList  m_Images;
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
 
 // Overrides
 	// ClassWizard generated virtual function overrides

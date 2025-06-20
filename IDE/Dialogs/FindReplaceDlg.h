@@ -3,11 +3,10 @@
 // CFindReplaceDlg dialog
 #include "..\resource.h"
 #include "afxwin.h"
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
-#include <afxdialogex.h> // Required for CDialogEx
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
-class CFindReplaceDlg : public CDialogEx
+class CFindReplaceDlg : public CExtWS<CDialog>
 {
 	DECLARE_DYNAMIC(CFindReplaceDlg)
 
@@ -24,17 +23,17 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CButton	m_Search;
-	CButton	m_Bookmark;
-	CButton	m_Replace;
-	CButton	m_ReplaceAll;
+	CExtButton	m_Search;
+	CExtButton	m_Bookmark;
+	CExtButton	m_Replace;
+	CExtButton	m_ReplaceAll;
 
-	CButton		m_Actions;    // Already CButton (standard)
-	CButton		m_Conditions; // Already CButton (standard)
+	CButton		m_Actions;
+	CButton		m_Conditions;
 
-	CEdit	m_Find;
-	CEdit	m_ReplaceWith;
-	CListCtrl	m_List;       // Already CListCtrl (standard)
+	CExtEdit	m_Find;
+	CExtEdit	m_ReplaceWith;
+	CListCtrl	m_List;
 	EventSheetEditor* pChrono;
 
 	// Search stuff

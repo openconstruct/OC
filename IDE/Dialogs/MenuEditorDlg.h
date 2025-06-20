@@ -2,10 +2,6 @@
 //
 
 #pragma once
-#include <afxdialogex.h> // Required for CDialogEx
-#include <vector>        // For std::vector
-using std::vector;       // Make vector usable without std:: prefix
-
 
 class MenuEditorItem;
 class CMenuEditor;
@@ -175,7 +171,7 @@ public:
 };
 
 // CMenuEditorDlg dialog
-class CMenuEditorDlg : public CDialogEx // Changed base class
+class CMenuEditorDlg : public CDialog
 {
 // Construction
 public:
@@ -185,11 +181,11 @@ public:
 
 	CMenuEditor m_Editor;
 
-	CButton m_Checked;   // Changed from CExtCheckBox
-	CButton m_Separator; // Changed from CExtCheckBox
-	CButton m_Disabled;  // Changed from CExtCheckBox
+	CExtCheckBox m_Checked;
+	CExtCheckBox m_Separator;
+	CExtCheckBox m_Disabled;
 
-	CButton m_OK, m_Cancel; // Changed from CExtButton
+	CExtButton m_OK, m_Cancel;
 
 // Dialog Data
 	enum { IDD = IDD_MENUEDITOR };

@@ -21,10 +21,9 @@ bool BehaviorSortFunction(const OINFO* a, const OINFO* b)
 
 /////////////////////////////////////////////////////////////////////////////
 // CNewBehaviorDlg dialog
-IMPLEMENT_DYNAMIC(CNewBehaviorDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 CNewBehaviorDlg::CNewBehaviorDlg(CWnd* pParent /*=NULL*/)
-		: CDialogEx(CNewBehaviorDlg::IDD, pParent) // Changed base class
+		: CExtNCW<CExtResizableDialog>(CNewBehaviorDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CNewBehaviorDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -33,7 +32,7 @@ CNewBehaviorDlg::CNewBehaviorDlg(CWnd* pParent /*=NULL*/)
 
 void CNewBehaviorDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CNewBehaviorDlg)
 	DDX_Control(pDX, IDC_LIST, m_List);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
@@ -42,9 +41,9 @@ void CNewBehaviorDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CNewBehaviorDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CNewBehaviorDlg, CDialog)
 	//{{AFX_MSG_MAP(CNewBehaviorDlg)
-	ON_BN_CLICKED(IDOK, OnOK) // This will call CNewBehaviorDlg::OnOK()
+	ON_BN_CLICKED(IDOK, OnOK)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST, &CNewBehaviorDlg::OnNMDblclkList)
@@ -57,7 +56,7 @@ END_MESSAGE_MAP()
 
 BOOL CNewBehaviorDlg::OnInitDialog() 
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CDialog::OnInitDialog();
 
 	// Add movements to dialog
 	POSITION pos = g_dlls->GetStartPosition();
@@ -90,7 +89,7 @@ BOOL CNewBehaviorDlg::OnInitDialog()
 		behaviors.push_back(sorted[i]->oID);
 	}
 
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\NewBehaviorDialog");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -126,14 +125,13 @@ void CNewBehaviorDlg::OnOK()
 
 	ID = behaviors[sel];
 	
-	CDialogEx::OnOK(); // Changed base class
+	CDialog::OnOK();
 }
 
 void CNewBehaviorDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
@@ -170,9 +168,8 @@ void CNewBehaviorDlg::OnSelChange(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CNewBehaviorDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();

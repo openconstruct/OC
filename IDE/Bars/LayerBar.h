@@ -58,9 +58,8 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // CLayerDlg dialog
 
-class CLayerDlg : public CDialogEx // Changed base class
+class CLayerDlg : public CExtResizableDialog
 {
-	DECLARE_DYNAMIC(CLayerDlg) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	CLayerDlg(CWnd* pParent = NULL);
@@ -70,9 +69,9 @@ public:
 	CLayoutEditor* layout_editor;
 	void RefreshLayers();
 
-	CToolBar m_Toolbar;      // Changed from CExtToolControlBar
-	CLayerListBox m_layerListBox; // Base is CDragListBox (standard)
-	CToolTipCtrl toolTip;    // Changed from CToolTipCtrlEx (assuming standard MFC CToolTipCtrl)
+	CExtToolControlBar m_Toolbar;
+	CLayerListBox m_layerListBox;
+	CToolTipCtrlEx toolTip;
 
 	// Images for preview
 	map<CLayer*, PreviewImage> images;
@@ -97,13 +96,10 @@ protected:
 };
 
 /////////////////////////////////////////////////////////////////////////////
-#include <afxdockablepane.h> // Required for CDockablePane
-
 // CLayerBar window
 
-class CLayerBar : public CDockablePane // Changed base class
+class CLayerBar : public CExtControlBar
 {
-	DECLARE_DYNAMIC(CLayerBar) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	CLayerBar();

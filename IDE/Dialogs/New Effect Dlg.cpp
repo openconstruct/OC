@@ -8,9 +8,9 @@
 
 // CNewHLSLDlg dialog
 
-IMPLEMENT_DYNAMIC(CNewHLSLDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC and changed base
+//IMPLEMENT_DYNAMIC(CNewHLSLDlg, CDialog)
 
-CNewHLSLDlg::CNewHLSLDlg(CWnd* pParent /*=NULL*/) : CDialogEx(CNewHLSLDlg::IDD, pParent) // Changed base class
+CNewHLSLDlg::CNewHLSLDlg(CWnd* pParent /*=NULL*/) : CExtNCW<CExtResizableDialog>(CNewHLSLDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CNewMovementDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -28,10 +28,10 @@ void CNewHLSLDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDC_EDITOR, m_Editor);
 	DDX_Control(pDX, IDC_DESCRIPTION, m_Description);
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CNewHLSLDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CNewHLSLDlg, CDialog)
 	ON_BN_CLICKED(IDOK, OnOK)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -41,9 +41,8 @@ END_MESSAGE_MAP()
 
 void CNewHLSLDlg::OnDestroy() 
 {
-	CDialogEx::OnDestroy(); // Changed base class
+	CDialog::OnDestroy();
 	
-	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
@@ -59,20 +58,19 @@ void CNewHLSLDlg::OnOK()
 	}
 	else {
 		m_Text     = m_List.GetItemText(sel, 0);
-		if (m_Text == "") { CDialogEx::OnCancel(); return; } // Changed base class
+		if (m_Text == "") return CDialog::OnCancel();
 		m_Filename = m_Text + ".fx";
 
 		m_Version = atof(m_List.GetItemText(sel, 1));
 		
-		CDialogEx::OnOK(); // Changed base class
+		CDialog::OnOK();
 	}
 }
 
 void CNewHLSLDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	CDialog::OnSize(nType, cx, cy);
 	
-	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();
@@ -114,7 +112,7 @@ void CNewHLSLDlg::OnChangeCategory()
 // CNewHLSLDlg message handlers
 BOOL CNewHLSLDlg::OnInitDialog() 
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CDialog::OnInitDialog();
 
 	m_List.InsertColumn(0, "Name", 0, 130, NULL);
 	m_List.InsertColumn(1, "Shader", 0, 70, NULL);
@@ -210,7 +208,7 @@ BOOL CNewHLSLDlg::OnInitDialog()
 
 	m_List.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 		
-	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
+	// Resizing
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\NewHLSLDlg2");
     dlgAnchor.Init(this->m_hWnd);
 

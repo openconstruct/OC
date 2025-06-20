@@ -1,11 +1,7 @@
 #pragma once
-#include <vector> // For std::vector
-using std::vector; // Make vector usable without std::prefix
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
-#include <afxdialogex.h> // Required for CDialogEx
-// #include "afxcmn.h" // For CListCtrl, CEdit - already included by stdafx.h or afxwin.h usually
-// #include "afxwin.h" // For CButton - already included by stdafx.h
+
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
 class CAddEffect
 {
@@ -17,23 +13,22 @@ public:
 };
 
 // CNewHLSLDlg dialog
-class CNewHLSLDlg : public CDialogEx // Changed base class
+class CNewHLSLDlg : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(CNewHLSLDlg) // Added DECLARE_DYNAMIC
 public:
 	CNewHLSLDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CNewHLSLDlg();
-	CListCtrl	m_List;    // Already standard
-	CButton	m_Cancel;  // Changed from CExtButton
-	CButton	m_OK;      // Changed from CExtButton
-	CButton	m_Editor;  // Changed from CExtButton
-	CEdit	m_Description; // Changed from CExtEdit
+	CListCtrl	m_List;
+	CExtButton	m_Cancel;
+	CExtButton	m_OK;
+	CExtButton	m_Editor;
+	CExtEdit	m_Description;
 
 	vector<CAddEffect> m_Effects;
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
-	CCustomTabCtrl m_Tabs; // Custom control - leave as is, may need separate refactoring if Prof-UIS derived
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
+	CCustomTabCtrl m_Tabs;
 
 	float m_Version;
 	

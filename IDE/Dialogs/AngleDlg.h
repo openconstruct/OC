@@ -1,13 +1,9 @@
 #pragma once
 #include "afxwin.h"
 #include "..\resource.h"
-#include <afxdialogex.h> // Required for CDialogEx
-#include <vector>        // For std::vector
-using std::vector;       // Make vector usable without std::prefix
-
 // CAngleDlg dialog
 
-class CAngleDlg : public CDialogEx // Changed base class
+class CAngleDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CAngleDlg)
 
@@ -17,8 +13,8 @@ public:
 
 	vector<float> m_Angles;
 
-	CButton m_OK, m_Cancel; // Changed from CExtButton
-	CComboBoxEx m_AddAngles;  // Already standard
+	CExtButton m_OK, m_Cancel;
+	CComboBoxEx m_AddAngles;
 
 	void OnBnClickedOk();
 

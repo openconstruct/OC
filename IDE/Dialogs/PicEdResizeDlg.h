@@ -7,14 +7,12 @@
 #endif // _MSC_VER > 1000
 // PicEdResizeDlg.h : header file
 //
-#include <afxdialogex.h> // Required for CDialogEx
 
 /////////////////////////////////////////////////////////////////////////////
 // CPicEdResizeDlg dialog
 
-class CPicEdResizeDlg : public CDialogEx // Changed base class
+class CPicEdResizeDlg : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(CPicEdResizeDlg) // Already present, ensure it's using CDialogEx if it was CExtNCW...
 // Construction
 public:
 	void EditHeightPercentage();
@@ -30,9 +28,9 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CPicEdResizeDlg)
 	enum { IDD = IDD_PICED_RESIZE };
-	CButton	m_Cancel; // Changed from CExtButton
-	CButton	m_Resize; // Changed from CExtButton
-	CButton	m_Reset;  // Changed from CExtButton
+	CExtButton	m_Cancel;
+	CExtButton	m_Resize;
+	CExtButton	m_Reset;
 	//}}AFX_DATA
 
 

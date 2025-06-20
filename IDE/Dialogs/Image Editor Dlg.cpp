@@ -21,7 +21,7 @@ extern CMainFrame* pMainWnd;
 
 
 CImageEditorDlg::CImageEditorDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CImageEditorDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CImageEditorDlg::IDD, pParent)
 {
 	m_pFrameWnd = 0;
 	m_pXDVView = 0;
@@ -45,22 +45,19 @@ CImageEditorDlg::CImageEditorDlg(CWnd* pParent /*=NULL*/)
 
 void CImageEditorDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CExtResizableDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CImageEditorDlg)
-	// DDX_Control for CToolBar and CControlBar is not standard like for CExt... controls.
-	// These controls are usually created and managed, not DDX'd by ID in this way.
-	// Commenting these out. Their creation and initialization will need to be MFC standard.
-	// DDX_Control(pDX, IDC_MAIN_MENUBAR, m_Main);
-	// DDX_Control(pDX, IDC_TOOLS, m_Tools);
-	// DDX_Control(pDX, IDC_MIXERBAR, m_Color_Mixer_bar);
-	// DDX_Control(pDX, IDC_OPTIONS,m_Tool_Settings); // Assuming CToolSettings is a custom CWnd/CDialog
-	// DDX_Control(pDX, IDC_PALETTE,m_PaletteBar);   // Assuming CPaletteBar is a custom CWnd/CDialog
-	// DDX_Control(pDX, IDC_ANIMATION, m_Tool_Animation); // Assuming CAnimationToolbar is a custom CWnd/CDialog
+	DDX_Control(pDX, IDC_MAIN_MENUBAR, m_Main);
+	DDX_Control(pDX, IDC_TOOLS, m_Tools);
+	DDX_Control(pDX, IDC_MIXERBAR, m_Color_Mixer_bar);
+	DDX_Control(pDX, IDC_OPTIONS,m_Tool_Settings);
+	DDX_Control(pDX, IDC_PALETTE,m_PaletteBar);
+	DDX_Control(pDX, IDC_ANIMATION, m_Tool_Animation);
 		// NOTE: the ClassWizard will add DDX and DDV calls here
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CImageEditorDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CImageEditorDlg, CExtResizableDialog)
 	//{{AFX_MSG_MAP(CImageEditorDlg)
 	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
@@ -140,7 +137,7 @@ BOOL CImageEditorDlg::OnInitDialog()
 	m_haccel=LoadAccelerators(AfxGetInstanceHandle(), 
         MAKEINTRESOURCE(IDR_MAINFRAME));
 
-	CDialogEx::OnInitDialog(); // Changed base class
+	CExtResizableDialog::OnInitDialog();
 	
 
 	// Create image editor window
@@ -190,28 +187,12 @@ BOOL CImageEditorDlg::OnInitDialog()
 	m_pXDVView->m_PicEd.m_pImageEditor = m_pXDVView;
 	m_pXDVView->m_pImgEdDlg = this;
 
-	// Load toolbars - CToolBar::LoadToolBar should work if resource format is compatible
-	// CToolBar::ModifyStyle is also standard
-	// However, these toolbars will not dock or behave like CExtToolControlBar without significant extra code
-	if (m_Main.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) &&
-		m_Main.LoadToolBar(IDR_PIC_MAIN))
-	{
-		// MFC CToolBar loaded. Docking/styling will be different or absent.
-	}
-	else {
-		MessageBox("Unable to make the main toolbar");
-	}
-	m_Main.SetWindowText("Main Tools");
+	// Load toolbar
+	m_Main.ModifyStyle(0, CBRS_TOOLTIPS);
+	if (!m_Main.LoadToolBar(IDR_PIC_MAIN))
+			MessageBox("Unable to make the main toolbar");
 
-
-	// Tool Settings (CToolSettings) - Assuming this is a custom CWnd/CDialog.
-	// Its creation and interaction logic is kept, but if it relied on Prof-UIS parents or notifications,
-	// it might not function correctly. This part is highly dependent on CToolSettings's actual implementation.
-	// If CToolSettings itself is a CExt... class, it would need refactoring too.
-	// For now, assuming its Create() method is standard.
-	// The DDX_Control for this was commented out, so direct member access is used by the class itself.
-	// This section is HIGHLY LIKELY to break or need significant rework.
-	/*
+	// Tool Settings
 	{
 
 		m_Tool_Settings.pTool = &m_pXDVView->m_tool;
@@ -220,121 +201,196 @@ BOOL CImageEditorDlg::OnInitDialog()
 
 		m_Tool_Settings.SetButtons(0,1);
 		m_Tool_Settings.SetWindowText("Tool Settings");
-		m_Tool_Settings.ShowWindow(true); // This might need a proper parent if it's not a top-level window
+		m_Tool_Settings.ShowWindow(true);
 	
-		// ... (creation of all child controls within m_Tool_Settings) ...
-		// This assumes m_Tool_Settings manages its children's Prof-UIS dependencies internally,
-		// or those child controls are standard/also refactored.
-		// This is a major simplification and likely source of issues.
+		// Brush Size
+		m_Tool_Settings.m_BrushSize.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 121);
+		m_Tool_Settings.m_BrushSize.m_type = ID_BRUSHSIZE;
+		m_Tool_Settings.m_BrushSize.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_BrushSize.m_Edit.m_Max = 128;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Min = 1;
+
+		// Brush Thickness
+		m_Tool_Settings.m_BrushThickness.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 122);
+		m_Tool_Settings.m_BrushThickness.m_type = ID_BRUSHTHICKNESS;
+		m_Tool_Settings.m_BrushThickness.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_BrushThickness.m_Edit.m_Max = 100;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Min = 0;
+
+		// Brush Hardness
+		m_Tool_Settings.m_BrushHardness.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 123);
+		m_Tool_Settings.m_BrushHardness.m_type = ID_BRUSHHARDNESS;
+		m_Tool_Settings.m_BrushHardness.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_BrushHardness.m_Edit.m_Max = 100;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Min = 0;
+
+		// Brush Angle
+		m_Tool_Settings.m_BrushAngle.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 124);
+		m_Tool_Settings.m_BrushAngle.m_type = ID_BRUSHANGLE;
+		m_Tool_Settings.m_BrushAngle.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_BrushAngle.m_Edit.m_Max = 360;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Min = 0;
+
+		// Brush Step
+		m_Tool_Settings.m_BrushStep.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 125);
+		m_Tool_Settings.m_BrushStep.m_type = ID_BRUSHSTEP;
+		m_Tool_Settings.m_BrushStep.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_BrushStep.m_Edit.m_Max = 100;
+
+		// Outline / Fill
+		m_Tool_Settings.m_OutlineFill.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,65,32), &m_Tool_Settings, 126);
+		m_Tool_Settings.m_OutlineFill.pPicEd = &m_pXDVView->m_PicEd;
+
+		// Actionpoints
+		m_Tool_Settings.m_ActionPointCombo.Create(CBS_DROPDOWN |WS_CHILD, CRect(120,16,150 + 120,400 + 16), &m_Tool_Settings, 127);
+		m_Tool_Settings.m_ActionPointCombo.SetFont( this->GetFont());
+		m_Tool_Settings.m_ActionPointAdd.Create("+",WS_CHILD, CRect(150 + 120,16,32+150 + 120, 20+16), &m_Tool_Settings, 128);
+		m_Tool_Settings.m_ActionPointAdd.SetFont( this->GetFont());
+
+
+		// Line Thickness
+		m_Tool_Settings.m_LineThickness.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 129);
+		m_Tool_Settings.m_LineThickness.m_type = ID_LINETHICKNESS;
+		m_Tool_Settings.m_LineThickness.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Min = 1;
+		m_Tool_Settings.m_LineThickness.m_Edit.m_Max = 99;
+
+		// Smooth
+		m_Tool_Settings.m_Smooth.Create("Smooth",WS_CHILD, CRect(150,0,64+150, 43), &m_Tool_Settings, 130);
+		m_Tool_Settings.m_Smooth.SetFont( this->GetFont());
+		m_Tool_Settings.m_Smooth.SetCheck(Props.bSmooth);
+
+		// Opacity
+		m_Tool_Settings.m_Opacity.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_Opacity.m_type = ID_OPACITY;
+		m_Tool_Settings.m_Opacity.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_Opacity.m_Edit.m_Max = 255;
+
+		// Flow
+		m_Tool_Settings.m_Flow.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_Flow.m_type = ID_FLOW;
+		m_Tool_Settings.m_Flow.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_Flow.m_Edit.m_Max = 255;
+
+		// Alpha 1
+		m_Tool_Settings.m_Alpha1.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_Alpha1.m_type = ID_ALPHA1;
+		m_Tool_Settings.m_Alpha1.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_Alpha1.m_Edit.m_Max = 255;
+
+		// Alpha 2
+		m_Tool_Settings.m_Alpha2.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_Alpha2.m_type = ID_ALPHA2;
+		m_Tool_Settings.m_Alpha2.pPicEd = &m_pXDVView->m_PicEd;
+		m_Tool_Settings.m_Alpha2.m_Edit.m_Max = 255;
+
+		// PosX
+		m_Tool_Settings.m_posX.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_posX.m_type = ID_POSX;
+		m_Tool_Settings.m_posX.pPicEd = &m_pXDVView->m_PicEd;
+
+		// PosY
+		m_Tool_Settings.m_posY.Create(WS_CHILD|WS_CLIPSIBLINGS | WS_TABSTOP|ES_MULTILINE , CRect(0,0,52,32), &m_Tool_Settings, 131);
+		m_Tool_Settings.m_posY.m_type = ID_POSY;
+		m_Tool_Settings.m_posY.pPicEd = &m_pXDVView->m_PicEd;
 
 	}
-	*/
-	// For now, to minimize breakage from CToolSettings and its children, commenting out its direct creation/use.
-	// This means the tool settings UI will be MISSING.
 
 
 	if(m_Animation)
 	{
-		// m_Tool_Animation (CAnimationToolbar) - Similar assumptions/issues as CToolSettings
-		// Assuming it's a custom CWnd/CDialog. Its creation and functionality are kept tentatively.
-		// DDX_Control was commented.
-		// This section is HIGHLY LIKELY to break or need significant rework.
-		/*
 		m_Tool_Animation.m_pImgEd = m_pXDVView;
+
+
+
 		for(int i = 0; i < m_sourceImages.size(); i++)
 		{
 			m_Tool_Animation.UpdateThumbnail(i);
 		}
-		*/
-		// Commenting out for now to reduce complexity. Animation bar will be MISSING.
 	}
 	else
 	{
-		// m_Tool_Animation.DestroyWindow(); // If it was never created, this is fine.
+		m_Tool_Animation.DestroyWindow();
 	}
 
-	// Tools CToolBar
-	if (m_Tools.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_LEFT | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) &&
-		m_Tools.LoadToolBar(IDR_PIC_TOOLS))
-	{
-		// MFC CToolBar loaded. Docking/styling will be different or absent.
-	}
-	else {
+	// Tools
+
+	if (//!m_Tools.Create("Tools",pMainFrame) ||
+		!m_Tools.LoadToolBar(IDR_PIC_TOOLS))
 		MessageBox("Unable to make the tools toolbar");
-	}
 	m_Tools.SetWindowText("Image Tools");
 
 
-	// Status Bar
-	m_pStatusBar = new CStatusBar; // Changed from CExtStatusControlBar
-	//UINT indicators[] = { ID_SEPARATOR, ID_INDICATOR_CAPS, ID_INDICATOR_NUM, ID_INDICATOR_SCRL }; // Already defined globally
-	if (m_pStatusBar->CreateEx(this, SBT_TOOLTIPS, WS_CHILD | WS_VISIBLE | CBRS_BOTTOM) &&
-		m_pStatusBar->SetIndicators(indicators, sizeof(indicators)/sizeof(UINT)))
+
+	m_pStatusBar = new CExtStatusControlBar;
+	m_pStatusBar->Create(this);
+	m_pStatusBar->AddPane(0, 0);
+	m_pStatusBar->SetPaneWidth(0, 70);
+	m_pStatusBar->AddPane(1, 1);
+	m_pStatusBar->SetPaneWidth(1, 70);
+	m_pStatusBar->AddPane(2, 2);
+	m_pStatusBar->SetPaneWidth(2, 220);
+
+	// Colour Mixer
+
+	m_Color_Mixer.Create(IDD_COLORMIXER, &m_Color_Mixer_bar);
+
+	//m_Color_Mixer.Create(IDD_COLORMIXER, this);
+	m_Color_Mixer.ShowWindow(true);
+
+
+	m_Color_Mixer.UpdateData(FALSE);
+	m_Color_Mixer.SetWindowText("Colour Mixer");
+	m_Color_Mixer.m_pImageView = m_pXDVView;
+
+	m_Color_Mixer.pColor1 = new COLORREF;
+	m_Color_Mixer.pColor2 = new COLORREF;
+	m_Color_Mixer.pColor = m_Color_Mixer.pColor1;
+
+
+	// Initial Colours
+	*m_Color_Mixer.pColor1 = g_MainFrame->m_INI.GetInt("ImageEditor", "Colour1", 10);
+	*m_Color_Mixer.pColor2 = g_MainFrame->m_INI.GetInt("ImageEditor", "Colour2", 10);
+
+	m_Color_Mixer.FindGradPos();
+	m_Color_Mixer.FindRainbowPos();
+	m_Color_Mixer.UpdateEditBoxs();
+
+
+
+	m_Color_Mixer_bar.ShowWindow(SW_SHOW);
+
+
+	/* Palette Bar */
+	/*if(!m_PaletteBar.Create("Colour palette", this->GetParentOwner(),AFX_IDW_TOOLBAR+2))
 	{
-		m_pStatusBar->SetPaneInfo(0, ID_SEPARATOR, SBPS_NORMAL, 70);
-		m_pStatusBar->SetPaneInfo(1, ID_INDICATOR_CAPS, SBPS_NORMAL, 70);
-		m_pStatusBar->SetPaneInfo(2, ID_INDICATOR_NUM, SBPS_NORMAL, 220);
-		// Note: CExtStatusControlBar had AddPane/SetPaneWidth. CStatusBar uses SetPaneInfo.
-		// The third pane ID_INDICATOR_SCRL was in indicators but not explicitly set with width here.
-	}
-	else {
-		delete m_pStatusBar;
-		m_pStatusBar = NULL;
-		MessageBox("Failed to create status bar");
-	}
+		MessageBox("Unable to make the palette bar");
+	}*/
+//	m_PaletteBar.SetBarStyle(  CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC|CBRS_ALIGN_BOTTOM);
 
 
-	// Colour Mixer (CColorMixer) and its bar (m_Color_Mixer_bar as CControlBar)
-	// This is complex. CExtPanelControlBar could host dialogs. Standard CControlBar cannot directly.
-	// m_Color_Mixer.Create(IDD_COLORMIXER, &m_Color_Mixer_bar) will fail if m_Color_Mixer_bar is just CControlBar.
-	// The CColorMixer dialog itself would need to be created as a modeless dialog or embedded differently.
-	// This functionality will likely be broken or needs significant redesign.
-	// For now, commenting out m_Color_Mixer_bar and m_Color_Mixer creation. Color Mixer will be MISSING.
-	/*
-	if (m_Color_Mixer_bar.Create(this, IDD_COLORMIXER_BAR_RESOURCE_ID_PLACEHOLDER, CBRS_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, AFX_IDW_CONTROLBAR_FIRST + 32)) // Placeholder ID
-	{
-		m_Color_Mixer_bar.EnableDocking(CBRS_ALIGN_ANY);
-		DockControlBar(&m_Color_Mixer_bar, AFX_IDW_DOCKBAR_RIGHT); // Wont work, DockControlBar is ProfUIS related for CExtResizableDialog
+	int style = //WS_CHILD|WS_VISIBLE
+				//	|CBRS_TOP|CBRS_TOOLTIPS
+				//	|CBRS_FLYBY|CBRS_SIZE_DYNAMIC
+0x50002034 &~CBRS_TOP   |  CBRS_RIGHT
+					;
 
-		m_Color_Mixer.Create(IDD_COLORMIXER, &m_Color_Mixer_bar); // This would fail if m_Color_Mixer_bar is not a CExtPanelControlBar
-		m_Color_Mixer.ShowWindow(true);
-		m_Color_Mixer.UpdateData(FALSE);
-		m_Color_Mixer.SetWindowText("Colour Mixer");
-		m_Color_Mixer.m_pImageView = m_pXDVView;
-		m_Color_Mixer.pColor1 = new COLORREF;
-		m_Color_Mixer.pColor2 = new COLORREF;
-		m_Color_Mixer.pColor = m_Color_Mixer.pColor1;
-		*m_Color_Mixer.pColor1 = g_MainFrame->m_INI.GetInt("ImageEditor", "Colour1", 10);
-		*m_Color_Mixer.pColor2 = g_MainFrame->m_INI.GetInt("ImageEditor", "Colour2", 10);
-		m_Color_Mixer.FindGradPos();
-		m_Color_Mixer.FindRainbowPos();
-		m_Color_Mixer.UpdateEditBoxs();
-		m_Color_Mixer_bar.ShowWindow(SW_SHOW); // This was CExtPanelControlBar
-	}
-	*/
 
-	// Palette Bar (CPaletteBar) - similar issues to CColorMixer and its bar.
-	// This custom control bar logic is deeply tied to Prof-UIS or a similar framework.
-	// Commenting out for now. Palette Bar will be MISSING.
-	/*
-	int style = 0x50002034 &~CBRS_TOP   |  CBRS_RIGHT; // Original style calculation
-	if (m_PaletteBar.Create(this, IDD_PALETTE_BAR_RESOURCE_ID_PLACEHOLDER, style, AFX_IDW_CONTROLBAR_FIRST + 33)) // Placeholder ID
-	{
-		m_PaletteBar.EnableDocking(CBRS_ALIGN_ANY); // Wont work
-		DockControlBar(&m_PaletteBar, AFX_IDW_DOCKBAR_RIGHT); // Wont work
 
-		m_PaletteBar.m_wndChild.m_pImageView = m_pXDVView;
-		m_PaletteBar.m_wndChild.pColor1 = m_Color_Mixer.pColor1; // Depends on m_Color_Mixer
-		m_PaletteBar.m_wndChild.pColor2 = m_Color_Mixer.pColor2; // Depends on m_Color_Mixer
+	m_PaletteBar.m_wndChild.m_pImageView = m_pXDVView;
+	m_PaletteBar.m_wndChild.pColor1 = m_Color_Mixer.pColor1;
+	m_PaletteBar.m_wndChild.pColor2 = m_Color_Mixer.pColor2;
 	
-		if (!m_PaletteBar.m_wndChild.Create(m_PaletteBar.m_wndChild.IDD,&m_PaletteBar))
-			return -1; // Error
-		m_PaletteBar.m_wndChild.ShowWindow(SW_SHOW);
-	}
-	*/
+	if (!m_PaletteBar.m_wndChild.Create(m_PaletteBar.m_wndChild.IDD,&m_PaletteBar))
+		return -1;
+
+
+	m_PaletteBar.m_wndChild.ShowWindow(SW_SHOW);
 	// end create controls
 
-	// give pointers to the control in the view - these will mostly be NULL now or point to uninitialized/non-functional bars
+
+
+	// give pointers to the control in the view
 
 
 
@@ -621,7 +677,7 @@ void CImageEditorDlg::OnSize(UINT nType, int cx, int cy)
 
 BOOL CImageEditorDlg::OnEraseBkgnd(CDC* pDC) 
 {
-	return CDialogEx::OnEraseBkgnd(pDC); // Changed base class
+	return CExtResizableDialog::OnEraseBkgnd(pDC);
 }
 
 void CImageEditorDlg::OnPaint() 
@@ -768,15 +824,15 @@ void CImageEditorDlg::OnClose()
 			return;
 	}
 
-	CDialogEx::OnClose(); // Changed base class
+	CExtResizableDialog::OnClose();
 }
 
 BOOL CImageEditorDlg::OnCommand(WPARAM wParam, LPARAM lParam) 
 {
 	// TODO: Add your specialized code here and/or call the base class
-	if(m_pXDVView && m_pXDVView->OnCommand(wParam,lParam)) // Added NULL check for m_pXDVView
+	if(m_pXDVView->OnCommand(wParam,lParam))
 		return TRUE;
-	return CDialogEx::OnCommand(wParam, lParam); // Changed base class
+	return CExtResizableDialog::OnCommand(wParam, lParam);
 }
 
 void CImageEditorDlg::OnEditPaste() 
@@ -1032,7 +1088,7 @@ BOOL CImageEditorDlg::PreTranslateMessage(MSG* pMsg)
 			return TRUE;
 		}
 	}
-	return CDialogEx::PreTranslateMessage(pMsg); // Changed base class
+	return CDialog::PreTranslateMessage(pMsg);
 }
 
 void CImageEditorDlg::CopyNeededDataFromImages()
@@ -1330,7 +1386,7 @@ void CImageEditorDlg::AskToDeleteCollisionMask()
 
 
 CPicEdSettingsDlg::CPicEdSettingsDlg(CWnd* pParent)
-	: CDialogEx(CPicEdSettingsDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CPicEdSettingsDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CImageEditorDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -1340,13 +1396,13 @@ CPicEdSettingsDlg::CPicEdSettingsDlg(CWnd* pParent)
 
 void CPicEdSettingsDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CExtResizableDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CImageEditorDlg)
 	// NOTE: the ClassWizard will add DDX and DDV calls here
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CPicEdSettingsDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CPicEdSettingsDlg, CExtResizableDialog)
 	//{{AFX_MSG_MAP(CImageEditorDlg)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()

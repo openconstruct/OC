@@ -9,8 +9,6 @@
 #include "..\resource.h"
 #include "..\Editors/ImageEditor.h"
 //#include "..\UTILITIES\CXIMAGE\CXIMAGE\ximage.h"	// Added by ClassView
-#include <afxdialogex.h> // Required for CDialogEx
-#include <afxext.h> // For CToolBar, CStatusBar
 
 
 
@@ -22,7 +20,7 @@ public:
 };
 
 
-class CPicEdSettingsDlg : public CDialogEx // Changed from CExtNCW<CExtResizableDialog>
+class CPicEdSettingsDlg : public CExtNCW<CExtResizableDialog>
 {
 
 public:
@@ -46,7 +44,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 // CImageEditorDlg dialog
 
-class CImageEditorDlg : public CDialogEx // Changed from CExtNCW<CExtResizableDialog>
+class CImageEditorDlg : public CExtNCW<CExtResizableDialog>
 {
 // Construction
 public:
@@ -84,14 +82,14 @@ public:
 
 	void AskToDeleteCollisionMask();
 
-	CToolBar m_Tools;        // Changed from CExtToolControlBar
-	CToolBar m_Main;         // Changed from CExtToolControlBar
-	CColorMixer m_Color_Mixer; // Assuming this is a custom CWnd/CDialog derived class
-	CToolSettings m_Tool_Settings; // Assuming this is a custom CWnd/CDialog derived class
-	CAnimationToolbar m_Tool_Animation; // Assuming this is a custom CWnd/CDialog derived class
-	CControlBar	m_Color_Mixer_bar; // Changed from CExtPanelControlBar - basic CControlBar
+	CExtToolControlBar m_Tools;
+	CExtToolControlBar m_Main;
+	CColorMixer m_Color_Mixer;
+	CToolSettings m_Tool_Settings;
+	CAnimationToolbar m_Tool_Animation;
+	CExtPanelControlBar	m_Color_Mixer_bar;
 
-	CStatusBar* m_pStatusBar;    // Changed from CExtStatusControlBar
+	CExtStatusControlBar* m_pStatusBar;
 
 
 	vector<CImageResource*> m_sourceImages;

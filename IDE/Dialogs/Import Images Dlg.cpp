@@ -10,10 +10,10 @@
 #include <string>
 // CImportImagesDlg dialog
 
-IMPLEMENT_DYNAMIC(CImportImagesDlg, CDialogEx)
+IMPLEMENT_DYNAMIC(CImportImagesDlg, CDialog)
 
 CImportImagesDlg::CImportImagesDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CImportImagesDlg::IDD, pParent) // Changed base class
+	: CExtNCW<CExtResizableDialog>(CImportImagesDlg::IDD, pParent)
 {
 	m_frame = false;
 	m_animation = false;
@@ -25,7 +25,7 @@ CImportImagesDlg::~CImportImagesDlg()
 
 void CImportImagesDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CExtNCW<CExtResizableDialog>::DoDataExchange(pDX);
 	//Buttons
 	DDX_Control(pDX, IDC_HOTSPOT1, m_Hotspot1);
 	DDX_Control(pDX, IDC_HOTSPOT2, m_Hotspot2);
@@ -69,7 +69,7 @@ void CImportImagesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PREVIEW_IMAGE, m_Preview);
 }
 
-BEGIN_MESSAGE_MAP(CImportImagesDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CImportImagesDlg, CExtNCW<CExtResizableDialog>)
 	ON_BN_CLICKED(IDC_HOTSPOT1, &CImportImagesDlg::OnBnClickedHotspot1)
 	ON_BN_CLICKED(IDC_HOTSPOT2, &CImportImagesDlg::OnBnClickedHotspot2)
 	ON_BN_CLICKED(IDC_HOTSPOT3, &CImportImagesDlg::OnBnClickedHotspot3)
@@ -110,7 +110,7 @@ bool sort_file_path_strings (CString i,CString j)
 
 BOOL CImportImagesDlg::OnInitDialog()
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CExtNCW<CExtResizableDialog>::OnInitDialog();
 
 	CFECFileDialog Dialog(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT, "All files|*.*");
 /*	if (Dialog.DoModal())
@@ -192,9 +192,24 @@ BOOL CImportImagesDlg::OnInitDialog()
 
 	UpdatePreview(); 
 
-	// Setup buttons - CExtBitmap and SetIcon/SetTooltipText calls removed
-	// Standard CButton does not have SetTooltipText directly. Tooltips would need CToolTipCtrl.
-	// Icons would need LoadImage or similar for HICON.
+	// Setup buttons
+		CExtBitmap Bitmap;
+		Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONADD));
+		m_Add.SetIcon(Bitmap.CreateHICON());
+		m_Add.SetTooltipText(AM_ADD);
+
+		Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONDELETE));
+		m_Remove.SetIcon(Bitmap.CreateHICON());
+		m_Remove.SetTooltipText(AM_REMOVE);
+
+		Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_UP));
+		m_Up.SetIcon(Bitmap.CreateHICON());
+		m_Up.SetTooltipText("Up");
+
+		Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_UP));
+		Bitmap.Flip(FALSE, TRUE);
+		m_Down.SetIcon(Bitmap.CreateHICON());
+		m_Down.SetTooltipText("Down");
 
 	return true;
 }
@@ -305,7 +320,7 @@ void CImportImagesDlg::UpdateHotspot(int a, int b)
 }
 void CImportImagesDlg::OnBnClickedColourMask()
 {
-	CColorDialog dlg(0, 0, this); // Changed from CExtColorDlg
+	CExtColorDlg dlg;
 	if(dlg.DoModal() == IDOK)
 	{
 
@@ -313,7 +328,7 @@ void CImportImagesDlg::OnBnClickedColourMask()
 		GetSelectedImages(imgs);
 		for(vector<CImageResource*>::iterator i = imgs.begin(); i!= imgs.end(); i++)
 		{
-			(*i)->ColourReplace(dlg.GetColor()+0xff000000, 0); // Use GetColor()
+			(*i)->ColourReplace(dlg.m_clrNew+0xff000000, 0);
 		}
 	}
 	UpdatePreview();

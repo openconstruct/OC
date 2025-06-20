@@ -10,9 +10,6 @@
 #define new DEBUG_NEW
 #endif
 
-// CMenuEditorDlg dialog (IMPLEMENT_DYNAMIC was missing)
-IMPLEMENT_DYNAMIC(CMenuEditorDlg, CDialogEx)
-
 #define ITEMWIDTH 90
 #define ITEMHEIGHT 18
 
@@ -194,7 +191,7 @@ HBRUSH CEditEx::CtlColor(CDC* pDC, UINT nCtlColor)
 }
 
 CMenuEditorDlg::CMenuEditorDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CMenuEditorDlg::IDD, pParent) // Changed base class
+	: CDialog(CMenuEditorDlg::IDD, pParent)
 {
 	m_pMenu = 0;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -208,10 +205,10 @@ void CMenuEditorDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_DISABLED, m_Disabled);
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
-	CDialogEx::DoDataExchange(pDX); // Changed base class
+	CDialog::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CMenuEditorDlg, CDialogEx) // Changed base class
+BEGIN_MESSAGE_MAP(CMenuEditorDlg, CDialog)
 	ON_WM_SYSCOMMAND()
 	ON_WM_QUERYDRAGICON()
 	ON_MESSAGE(DM_GETDEFID, OnGetDefID)
@@ -258,7 +255,7 @@ BOOL CMenuEditorDlg::PreTranslateMessage(MSG* pMsg)
 
 	//
 
-    return CDialogEx::PreTranslateMessage(pMsg); // Changed base class
+    return CDialog::PreTranslateMessage(pMsg);
 } 
 
 // stop enter closing dialog
@@ -269,7 +266,7 @@ LRESULT CMenuEditorDlg::OnGetDefID(WPARAM wp, LPARAM lp)
 
 BOOL CMenuEditorDlg::OnInitDialog()
 {
-	CDialogEx::OnInitDialog(); // Changed base class
+	CDialog::OnInitDialog();
 
 	// Add "About..." menu item to system menu.
 
@@ -329,7 +326,7 @@ BOOL CMenuEditorDlg::OnInitDialog()
 
 void CMenuEditorDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
-	CDialogEx::OnSysCommand(nID, lParam); // Changed base class
+	CDialog::OnSysCommand(nID, lParam);
 }
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -649,5 +646,5 @@ void CMenuEditorDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	m_Editor.m_edit.ShowWindow(true);
 	m_Editor.m_edit.SetFocus();
-	CDialogEx::OnKeyDown(nChar, nRepCnt, nFlags); // Changed base class
+	CDialog::OnKeyDown(nChar, nRepCnt, nFlags);
 }

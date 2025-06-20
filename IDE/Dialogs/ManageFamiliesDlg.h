@@ -2,15 +2,14 @@
 
 #include "..\Structure.h"
 
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
-#include <afxdialogex.h> // Required for CDialogEx
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
 // CManageFamiliesDlg dialog
 
-class CManageFamiliesDlg : public CDialogEx // Changed base class
+class CManageFamiliesDlg : public CExtNCW<CExtResizableDialog>
 {
-	DECLARE_DYNAMIC(CManageFamiliesDlg) // Added and changed base
+	//DECLARE_DYNAMIC(CManageFamiliesDlg)
 
 public:
 	CManageFamiliesDlg(CWnd* pParent = NULL);   // standard constructor
@@ -19,15 +18,15 @@ public:
 // Dialog Data
 	enum { IDD = IDD_MANAGEFAMILIES };
 
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
 	CApplication* application;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 
-	CButton m_Add, m_Remove, m_Edit, m_Close, m_Cancel; // Changed from CExtButton
+	CExtButton m_Add, m_Remove, m_Edit, m_Close, m_Cancel;
 
 	bool FamilyNameExists(CString name);
 

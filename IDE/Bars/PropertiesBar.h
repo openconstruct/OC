@@ -1,16 +1,6 @@
 #pragma once
 
-#include "PropBar.h" // Assuming this does not bring in Prof-UIS itself, or will be refactored too
-#include <afxdockablepane.h> // For CDockablePane
-#include <afxpropertygridctrl.h> // For CMFCPropertyGridCtrl (potential replacement, but not used directly yet)
-#include <vector>       // For std::vector
-#include <map>          // For std::map
-#include <list>         // For std::list
-// Using directives for STL containers
-using std::vector;
-using std::map;
-using std::list;
-
+#include "PropBar.h"
 
 #define PROPTYPE_EDIT		0
 #define PROPTYPE_STATIC		1
@@ -25,14 +15,12 @@ using std::list;
 #define PROPTYPE_SLIDER		10
 #define PROPTYPE_FRAME		11
 
-// struct HyperLinkClickInfo { // Depends on CExtPropertyItem, CProfStudioPropertyGridCtrl - Commented out
-// 	CExtPropertyItem* pItem;
-// 	CProfStudioPropertyGridCtrl* pGrid;
-// };
+struct HyperLinkClickInfo {
+	CExtPropertyItem* pItem;
+	CProfStudioPropertyGridCtrl* pGrid;
+};
 
-// CExtGridCellHyperLinkEx, CExtGridCellCurrencyEx, CExtGridCellNumberEx and their DYNCREATE/IMPLEMENT macros
-// are Prof-UIS specific grid cell types. Commented out.
-/*
+// Overridden OnHyperlinkOpen
 class CExtGridCellHyperLinkEx : public CExtGridCellHyperLink 
 {
     DECLARE_DYNCREATE(CExtGridCellHyperLinkEx);
@@ -55,6 +43,7 @@ public:
     }
 };
 
+// Overridden for trailing zero removal
 class CExtGridCellCurrencyEx : public CExtGridCellCurrency
 {
     DECLARE_DYNCREATE(CExtGridCellCurrencyEx);
@@ -66,6 +55,7 @@ public:
 	void TextGet( CExtSafeString & strCopy ) const;
 };
 
+// Overridden for trailing zero removal
 class CExtGridCellNumberEx : public CExtGridCellNumber
 {
     DECLARE_DYNCREATE(CExtGridCellNumberEx);
@@ -76,7 +66,6 @@ class CExtGridCellNumberEx : public CExtGridCellNumber
 public:
 	void TextGet( CExtSafeString & strCopy ) const;
 };
-*/
 
 /////////////////////////////////////////////////////////////////////////////
 // CPropertiesBar window
@@ -84,9 +73,8 @@ public:
 #include "..\Construct Doc.h"
 #include "..\Editors\LayoutEditor.h"
 
-class PropertiesBar : public CDockablePane // Changed base class from CExtControlBar
+class PropertiesBar : public CExtControlBar
 {
-	DECLARE_DYNAMIC(PropertiesBar) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	PropertiesBar();
@@ -123,17 +111,15 @@ public:
 
 	map<CString, bool>* curExpandSave;
 
-	// CExtPropertyStore* m_pStore;				// Prof-UIS: Commented out
-	// CExtPropertyStore* m_pCurrentStore;			// Prof-UIS: Commented out
-	// CProfStudioPropertyGridCtrl* m_pGrid;		// Prof-UIS: Commented out
-	CStatic m_GridPlaceholder; // Placeholder for CProfStudioPropertyGridCtrl m_Grid;
-	CStatic* m_pGridPlaceholder; // Placeholder for CProfStudioPropertyGridCtrl* m_pGrid;
+	CExtPropertyStore* m_pStore;				// Current property store to display
+	CExtPropertyStore* m_pCurrentStore;			// Current property store to add elements to
+	CProfStudioPropertyGridCtrl* m_pGrid;		// Property grid ctrl
+	CProfStudioPropertyGridCtrl m_Grid;		// Property grid ctrl
 
-
-	// void	SetGridCellIcon(CExtGridCell* pCell, HBITMAP bmpIcon); // Depends on CExtGridCell - Commented out
+	void	SetGridCellIcon(CExtGridCell* pCell, HBITMAP bmpIcon);
 
 	 //For multi selections
-	// vector<CExtPropertyStore*> m_pMultiStore; // Prof-UIS: Commented out
+	vector<CExtPropertyStore*> m_pMultiStore;
 
 	CLayer* pLastLayer;
 
@@ -149,39 +135,34 @@ public:
 	CLayout*		m_CurrentLayout;
 
 	// A totally stupid hack for working around Prof-UIS hyper link classes being reset
-	// list<HyperLinkClickInfo> hyperLinks; // Depends on HyperLinkClickInfo - Commented out
+	list<HyperLinkClickInfo> hyperLinks;
 
      // Allow usage as a pointer    
 	operator PropertiesBar*() { return this; }
 
 	CFont	m_font;
 
-	// Property grid helpers - All these depend on CExtPropertyItem and CExtGridCell... types
-	// They will need to be commented out or their bodies heavily modified.
-	// For now, changing return types to void* or basic types and commenting bodies in CPP.
-	void*		InsertCategory(CString label, CString desc, void* pRoot = NULL);
-	void*		InsertAppItem(CString label, CString desc, void* pRoot = NULL);
-	void*		InsertResourceItem(CString label, CString desc, CApplication* application, list<ApplicationResource>* stored, ApplicationResource* resource, void* pRoot = NULL);
-	void*		InsertControlItem(CString label, CString desc, int player, void* pRoot = NULL);
-	void*		InsertFrameItem(CString label, CString desc, void* pRoot = NULL);
-	void*		InsertStdObjectItem(CString label, CString desc, CObj* obj, CObjType* pType, void* pRoot = NULL);
-	void*		InsertPrivateVarItem(CString label, CString desc, CObj* obj, CObjType* pType, int valueIndex, void* pRoot = NULL);
-	void*		InsertObjectItem(CString label, CString desc, CObj* obj, editInfo* data, CObjType* pType, OINFO* oInfo, void* pRoot = NULL);
-	void*		InsertEffectItem(CString label, CString desc, CEffect* _pEffect, list<CEffect>& _effects, CObjType* _pType, CLayer* _pLayer, void* pRoot = NULL);
-	void*		InsertBehaviorItem(CString label, CString desc, CBehavior* _pMov, CObjType* _pOwner, CLayout* _level, CLayoutEditor* _frame, void* pRoot = NULL);
-	void*		InsertTraitItem(CString label, CString desc, CString _trait, CObjType* _pOwner, void* pRoot = NULL);
-	void*		InsertFamilyItem(CString label, CString desc, CObjType* pType, void* pRoot = NULL);
-	void*		InsertGlobalItem(CString label, CString desc, void* pRoot = NULL);
-	void*		InsertContainerItem(CString label, CString desc, CContainer* pContainer, long oid, void* pRoot = NULL);
-	void*		InsertTransitionItem(CString label, CString desc, CTransition* pTransition, void* pRoot = NULL);
-	void*		InsertEventSheetItem(CString label, CString desc, EventSheet* pEventSheet, void* pRoot = NULL);
-	void*		InsertAnimationItem(CString label, CString desc, CAnimation* pAnim, int frameIndex, void* pRoot = NULL);
+	// Property grid helpers
+	CExtPropertyItem*		InsertCategory(CString label, CString desc, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertAppItem(CString label, CString desc, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertResourceItem(CString label, CString desc, CApplication* application, list<ApplicationResource>* stored, ApplicationResource* resource, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertControlItem(CString label, CString desc, int player, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertFrameItem(CString label, CString desc, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertStdObjectItem(CString label, CString desc, CObj* obj, CObjType* pType, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertPrivateVarItem(CString label, CString desc, CObj* obj, CObjType* pType, int valueIndex, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertObjectItem(CString label, CString desc, CObj* obj, editInfo* data, CObjType* pType, OINFO* oInfo, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertEffectItem(CString label, CString desc, CEffect* _pEffect, list<CEffect>& _effects, CObjType* _pType, CLayer* _pLayer, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertBehaviorItem(CString label, CString desc, CBehavior* _pMov, CObjType* _pOwner, CLayout* _level, CLayoutEditor* _frame, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertTraitItem(CString label, CString desc, CString _trait, CObjType* _pOwner, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertFamilyItem(CString label, CString desc, CObjType* pType, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertGlobalItem(CString label, CString desc, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertContainerItem(CString label, CString desc, CContainer* pContainer, long oid, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertTransitionItem(CString label, CString desc, CTransition* pTransition, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertEventSheetItem(CString label, CString desc, EventSheet* pEventSheet, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*		InsertAnimationItem(CString label, CString desc, CAnimation* pAnim, int frameIndex, CExtPropertyItem* pRoot = NULL);
 
-	void*				InsertLayerItem(CString label, CString desc, void* pRoot = NULL);
-	void*				InsertNeutralItem(CString label, CString desc, void* pRoot = NULL, bool compound = false);
-	// The Get... methods returning CExtGridCell...* are problematic. They should return generic CWnd* or be removed.
-	// For now, commenting them out as their return types are Prof-UIS specific.
-/*
+	CExtPropertyItem*				InsertLayerItem(CString label, CString desc, CExtPropertyItem* pRoot = NULL);
+	CExtPropertyItem*				InsertNeutralItem(CString label, CString desc, CExtPropertyItem* pRoot = NULL, bool compound = false);
 	CExtGridCellDropListComboBox*	GetCombo(CExtPropertyItem* pItem);
 	CExtGridCellString*				GetEdit(CExtPropertyItem* pItem);
 	CExtGridCellNumber*				GetInteger(CExtPropertyItem* pItem);
@@ -193,13 +174,13 @@ public:
 	CExtGridCellSlider*				GetSlider(CExtPropertyItem* pItem);
 	CExtGridCellRadioButton*		GetRadio(CExtPropertyItem* pItem);
 	CExtGridCellFont*				GetFont(CExtPropertyItem* pItem);
-*/
-	void* AddPropertyItemToTree(CPropItem& item, void* pRoot, CString& retStr, PropReturn& Return); // void* for CExtPropertyItem
+
+	CExtGridCellEx* AddPropertyItemToTree(CPropItem& item, CExtPropertyItem* pRoot, CString& retStr, PropReturn& Return);
 
 	void							DoAppProperties();
 
 	// tips
-	// CCtrlMessageBar					tips; // Prof-UIS, commented out
+	CCtrlMessageBar					tips;
 	void							ShowTip(std::string const);
 
 	static void Update_OINFO_Properties(editInfo* info);

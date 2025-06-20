@@ -1,9 +1,8 @@
 #pragma once
 #include "afxwin.h"
-#include <afxdialogex.h> // Required for CDialogEx
 
 // CAddVariableDlg dialog
-class CAddVariableDlg : public CDialogEx // Changed base class
+class CAddVariableDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CAddVariableDlg)
 
@@ -12,8 +11,8 @@ public:
 	virtual ~CAddVariableDlg();
 	BOOL OnInitDialog();
 
-	CButton m_OK, m_Cancel; // Changed from CExtButton
-	// CCtrlMessageBar	tips; // Prof-UIS: Functionality will be removed or replaced by MessageBox
+	CExtButton m_OK, m_Cancel;
+	CCtrlMessageBar	tips;
 
 // Dialog Data
 	enum { IDD = IDD_ADDVARIABLE };

@@ -21,8 +21,6 @@ static char THIS_FILE[] = __FILE__;
 extern CMainFrame* pMainWnd;
 extern PropertiesBar* g_PropertyBar;
 
-IMPLEMENT_DYNAMIC(ProjectBar, CDockablePane) // Added IMPLEMENT_DYNAMIC
-
 ProjectBar::ProjectBar() :
 	stop_expand(false),
 	dragging_object(false)
@@ -31,7 +29,7 @@ ProjectBar::ProjectBar() :
 
 extern CMultiDocTemplate* pDocTemplate;
 
-BEGIN_MESSAGE_MAP(ProjectBar, CDockablePane) // Changed base class
+BEGIN_MESSAGE_MAP(ProjectBar, CExtControlBar)
 	ON_WM_CREATE()
 
 	ON_NOTIFY(NM_CLICK, 100, OnSingleClick)
@@ -41,8 +39,8 @@ BEGIN_MESSAGE_MAP(ProjectBar, CDockablePane) // Changed base class
 	ON_NOTIFY(TVN_BEGINLABELEDIT, 100, OnBeginEditLabel)
 	ON_NOTIFY(TVN_ENDLABELEDIT, 100, OnEditLabel)
 
-	// ON_REGISTERED_MESSAGE(WM_XHTMLTREE_BEGIN_DRAG, OnBeginDrag) // Removed CXHtmlTree specific message
-	// ON_REGISTERED_MESSAGE(WM_XHTMLTREE_END_DRAG, OnEndDrag)   // Removed CXHtmlTree specific message
+	ON_REGISTERED_MESSAGE(WM_XHTMLTREE_BEGIN_DRAG, OnBeginDrag)
+	ON_REGISTERED_MESSAGE(WM_XHTMLTREE_END_DRAG, OnEndDrag)
 END_MESSAGE_MAP()
 
 ////////////////////////////////////////////////////////////////////////////
@@ -51,18 +49,18 @@ END_MESSAGE_MAP()
 
 int ProjectBar::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
-	if (CDockablePane::OnCreate(lpCreateStruct) == -1) // Changed base class
+	if (CExtControlBar::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
 	if (!tree.Create(WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_EDITLABELS,
-		CRect(1, 1, 1, 1), this, 100)) // Control ID 100 for the tree
+		CRect(1, 1, 1, 1), this, 100))
 		return -1;
 
 	tree.ModifyStyleEx(0, WS_EX_STATICEDGE);
 
 	font.CreateFont(14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, "Segoe UI");
 	tree.SetFont(&font);
-	// tree.always_shift = false; // CXHtmlTree specific member, remove
+	tree.always_shift = false;
 	
 	images.Create(16, 16, ILC_COLOR24 | ILC_MASK, 0, 0);
 
@@ -85,34 +83,34 @@ void ProjectBar::AddApplication(CApplication* application)
 	tree.SetItemData(application->tree_items.application, (DWORD)application);
 
 	// layouts
-	application->tree_items.layouts = tree.InsertItem("Layouts", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.layouts = tree.InsertItem("<b>Layouts</b>", image_stub, image_stub, application->tree_items.application);
 
 	// event sheets
-	application->tree_items.event_sheets = tree.InsertItem("Event sheets", 0, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.event_sheets = tree.InsertItem("<b>Event sheets</b>", 0, image_stub, application->tree_items.application);
 
 	// folders
-	application->tree_items.folders = tree.InsertItem("Objects", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.folders = tree.InsertItem("<b>Objects</b>", image_stub, image_stub, application->tree_items.application);
 
 	// global variables
-	application->tree_items.global_variables = tree.InsertItem("Global variables", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.global_variables = tree.InsertItem("<b>Global variables</b>", image_stub, image_stub, application->tree_items.application);
 
 	// file resources
-	application->tree_items.files = tree.InsertItem("Files", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.files = tree.InsertItem("<b>Files</b>", image_stub, image_stub, application->tree_items.application);
 
 	// sound resources
-	application->tree_items.sounds = tree.InsertItem("Sounds", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.sounds = tree.InsertItem("<b>Sounds</b>", image_stub, image_stub, application->tree_items.application);
 
 	// music resources
-	application->tree_items.music = tree.InsertItem("Music", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.music = tree.InsertItem("<b>Music</b>", image_stub, image_stub, application->tree_items.application);
 
 	// font resources
-	application->tree_items.fonts = tree.InsertItem("Fonts", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.fonts = tree.InsertItem("<b>Fonts</b>", image_stub, image_stub, application->tree_items.application);
 
 	// icon resources
-	application->tree_items.icons = tree.InsertItem("Icons", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.icons = tree.InsertItem("<b>Icons</b>", image_stub, image_stub, application->tree_items.application);
 
 	// menu resources
-	application->tree_items.menus = tree.InsertItem("Menus", image_stub, image_stub, application->tree_items.application); // HTML removed
+	application->tree_items.menus = tree.InsertItem("<b>Menus</b>", image_stub, image_stub, application->tree_items.application);
 }
 
 void ProjectBar::UpdateApplication(CApplication* application)
@@ -663,8 +661,8 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	tree.GetItemImage(selected, image, selected_image);
 
 	// create a blank menu
-	CMenu menu;
-	menu.CreatePopupMenu();
+	CExtPopupMenuWnd* popup = new CExtPopupMenuWnd;
+	popup->CreatePopupMenu(m_hWnd);
 		
 	switch (image)
 	{
@@ -672,11 +670,11 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	case image_stub:
 
 		// layouts stub
-		if (tree.GetItemText(selected).Find("Layouts") != -1) // Find will work on plain text
+		if (tree.GetItemText(selected).Find("Layouts") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add layout");
+			popup->ItemInsertCommand(1, -1, "Add layout", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add layout
 			if (chosen == 1)
@@ -686,9 +684,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// event sheets stub
 		if (tree.GetItemText(selected).Find("Event sheets") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add event sheet");
+			popup->ItemInsertCommand(1, -1, "Add event sheet", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add layout
 			if (chosen == 1)
@@ -714,9 +712,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// object folders stub
 		if (tree.GetItemText(selected).Find("Objects") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add object folder");
+			popup->ItemInsertCommand(1, -1, "Add object folder", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add object folder
 			if (chosen == 1)
@@ -739,9 +737,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// global variables stub
 		if (tree.GetItemText(selected).Find("Global variables") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add global variable");
+			popup->ItemInsertCommand(1, -1, "Add global variable", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add global variable
 			if (chosen == 1)
@@ -777,20 +775,20 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// menus stub
 		if (tree.GetItemText(selected).Find("Menus") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add menu");
+			popup->ItemInsertCommand(1, -1, "Add menu", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add menu
 			if (chosen == 1)
 			{
 				CApplication* application = (CApplication*)(tree.GetItemData(tree.GetParentItem(selected)));
 
-				MenuResource menu_res; // Changed variable name to avoid conflict
+				MenuResource menu;
 				CString name = application->resources.GetUniqueResourceName((list<ApplicationResource>*)&application->resources.menu_resources, "Menu");
-				menu_res.SetName(name);
+				menu.SetName(name);
 
-				application->resources.menu_resources.push_back(menu_res);
+				application->resources.menu_resources.push_back(menu);
 
 				application->ChangeModifiedStatus();
 
@@ -801,9 +799,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// files stub
 		if (tree.GetItemText(selected).Find("Files") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add file(s)");
+			popup->ItemInsertCommand(1, -1, "Add file(s)", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add file
 			if (chosen == 1)
@@ -850,9 +848,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// sounds stub
 		if (tree.GetItemText(selected).Find("Sounds") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add sound(s)");
+			popup->ItemInsertCommand(1, -1, "Add sound(s)", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add sound
 			if (chosen == 1)
@@ -899,9 +897,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// music stub
 		if (tree.GetItemText(selected).Find("Music") != -1)
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add music");
+			popup->ItemInsertCommand(1, -1, "Add music", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			// add music
 			if (chosen == 1)
@@ -951,15 +949,15 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	case image_application:
 
 		{
-			menu.AppendMenu(MF_STRING, 1, "Add layout");
-			menu.AppendMenu(MF_SEPARATOR);
-			menu.AppendMenu(MF_STRING, 2, "Manage families");
-			menu.AppendMenu(MF_STRING, 3, "View used plugins");
-			menu.AppendMenu(MF_SEPARATOR);
-			menu.AppendMenu(MF_STRING, 4, "Close project");
-			menu.AppendMenu(MF_STRING, 5, "Preview project");
+			popup->ItemInsertCommand(1, -1, "Add layout", NULL, NULL);
+			popup->ItemInsert();
+			popup->ItemInsertCommand(2, -1, "Manage families", NULL, NULL);
+			popup->ItemInsertCommand(3, -1, "View used plugins", NULL, NULL);
+			popup->ItemInsert();
+			popup->ItemInsertCommand(4, -1, "Close project", NULL, NULL);
+			popup->ItemInsertCommand(5, -1, "Preview project", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+			popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 			CApplication* application = (CApplication*)tree.GetItemData(selected);
 
@@ -1060,12 +1058,12 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	// layouts
 	case image_layout:
 
-			menu.AppendMenu(MF_STRING, 1, "Preview layout");
-			menu.AppendMenu(MF_SEPARATOR);
-			menu.AppendMenu(MF_STRING, 2, "Clone layout");
-			menu.AppendMenu(MF_STRING, 3, "Remove layout");
+		popup->ItemInsertCommand(1, -1, "Preview layout", NULL, NULL);
+		popup->ItemInsert();
+		popup->ItemInsertCommand(2, -1, "Clone layout", NULL, NULL);
+		popup->ItemInsertCommand(3, -1, "Remove layout", NULL, NULL);
 
-			chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+		popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 		// preview layout
 		if (chosen == 1)
@@ -1150,9 +1148,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	// event sheets
 	case image_event_sheet:
 
-		menu.AppendMenu(MF_STRING, 1, "Remove event sheet");
+		popup->ItemInsertCommand(1, -1, "Remove event sheet", NULL, NULL);
 
-		chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+		popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 		// remove event sheet
 		if (chosen == 1)
@@ -1167,9 +1165,9 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	// object folders
 	case image_object_folder:
 
-		menu.AppendMenu(MF_STRING, 1, "Remove object folder");
+		popup->ItemInsertCommand(1, -1, "Remove object folder", NULL, NULL);
 
-		chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+		popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 		// remove object folder
 		if (chosen == 1)
@@ -1186,10 +1184,10 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	// global variable
 	case image_global_variable:
 
-		menu.AppendMenu(MF_STRING, 1, "Edit global variable");
-		menu.AppendMenu(MF_STRING, 2, "Remove global variable");
+		popup->ItemInsertCommand(1, -1, "Edit global variable", NULL, NULL);
+		popup->ItemInsertCommand(2, -1, "Remove global variable", NULL, NULL);
 
-		chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+		popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 		// edit global variable
 		if (chosen == 1)
@@ -1264,15 +1262,15 @@ void ProjectBar::OnRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 	case image_music_resource:
 	case image_sound_resource:
 
-		menu.AppendMenu(MF_STRING, 1, "Remove");
+		popup->ItemInsertCommand(1, -1, "Remove", NULL, NULL);
 
 		if (image == image_music_resource || image == image_sound_resource)
 		{
-			menu.AppendMenu(MF_SEPARATOR);
-			menu.AppendMenu(MF_STRING, 2, "Preview");
+			popup->ItemInsert();
+			popup->ItemInsertCommand(2, -1, "Preview", NULL, NULL);
 		}
 
-		chosen = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, cursor.x, cursor.y, this);
+		popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP | TPMX_NO_WM_COMMAND, cursor.x, cursor.y, NULL, NULL, NULL, &chosen);
 
 		// remove resource
 		if (chosen == 1)
@@ -1614,10 +1612,6 @@ void ProjectBar::OnEditLabel(NMHDR *pNMHDR, LRESULT *pResult)
 
 LRESULT ProjectBar::OnBeginDrag(WPARAM wParam, LPARAM lParam)
 {
-	// XHTMLTREEMSGDATA and related drag/drop logic removed as it's specific to CXHtmlTree.
-	// Standard CTreeCtrl uses TVN_BEGINDRAG notification.
-	// This functionality will be lost unless re-implemented with standard MFC drag/drop for CTreeCtrl.
-	/*
 	XHTMLTREEMSGDATA *pMsg = (XHTMLTREEMSGDATA *) wParam;
 	ASSERT(pMsg);
 
@@ -1625,18 +1619,44 @@ LRESULT ProjectBar::OnBeginDrag(WPARAM wParam, LPARAM lParam)
 
 	if (pMsg && pData)
 	{
-		// ... original logic ...
+		// check what this is
+		int image, selected_image;
+		tree.GetItemImage(pData->hItem, image, selected_image);
+
+		// get parent image
+		int parent_image, parent_selected_image;
+		tree.GetItemImage(tree.GetParentItem(pData->hItem), parent_image, parent_selected_image);
+
+		// only allow event sheets, layouts and global variables
+		if (image == image_layout)
+			return 0;
+
+		if (image == image_event_sheet && parent_image != image_layout)
+			return 0;
+
+		if (image == image_global_variable)
+			return 0;
+
+		// is it an object?
+		if (parent_image == image_object_folder)
+		{
+			dragging_object = true;
+			tree.always_shift = true;
+			return 0;
+		}
+
+		else
+		{
+			dragging_object = false;
+			tree.always_shift = false;
+		}
 	}
 
 	return 1;
-	*/
-	return 0; // Placeholder
 }
 
 LRESULT ProjectBar::OnEndDrag(WPARAM wParam, LPARAM lParam)
 {
-	// XHTMLTREEMSGDATA and related drag/drop logic removed.
-	/*
 	XHTMLTREEMSGDATA *pMsg = (XHTMLTREEMSGDATA *) wParam;
 	ASSERT(pMsg);
 
@@ -1648,11 +1668,140 @@ LRESULT ProjectBar::OnEndDrag(WPARAM wParam, LPARAM lParam)
 	{
 		if (pData)
 		{
-			// ... original logic ...
+			// check what this is
+			int image, selected_image;
+			tree.GetItemImage(pData->hItem, image, selected_image);
+
+			// layout
+			if (image == image_layout)
+			{
+				// parent changed, disallow
+				if (pData->hNewParent != tree.GetParentItem(pData->hItem))
+					return 1;
+
+				// otherwise move it
+				CLayout* layout = (CLayout*)tree.GetItemData(pData->hItem);
+
+				// get application
+				CApplication* application = layout->application;
+
+				// get the location in the CList and remove it
+				POSITION position = application->layouts.Find(layout);
+				application->layouts.RemoveAt(position);
+
+				if (pData->hAfter == TVI_FIRST)
+					application->layouts.AddHead(layout);
+				else if (pData->hAfter == TVI_LAST)
+					application->layouts.AddTail(layout);
+				else
+				{
+					CLayout* drop_layout = (CLayout*)tree.GetItemData(pData->hAfter);
+					POSITION insert_at = application->layouts.Find(drop_layout);
+					application->layouts.InsertAfter(insert_at, layout);
+				}
+
+				// modify changed status
+				application->ChangeModifiedStatus(true);
+			}
+
+			// event sheet
+			else if (image == image_event_sheet)
+			{
+				EventSheet* sheet = (EventSheet*)tree.GetItemData(pData->hItem);
+
+				// get application
+				CApplication* application = sheet->application;
+
+				// parent changed, disallow
+				int parent_image, parent_selected_image;
+				tree.GetItemImage(pData->hNewParent, parent_image, parent_selected_image);
+
+				if (pData->hNewParent != tree.GetParentItem(pData->hItem))
+					return 1;
+
+				application->event_sheets.erase(find(application->event_sheets.begin(), application->event_sheets.end(), sheet));
+
+				if (pData->hAfter == TVI_FIRST)
+					application->event_sheets.push_front(sheet);
+				else if (pData->hAfter == TVI_LAST)
+					application->event_sheets.push_back(sheet);
+				else
+				{
+					EventSheet* drop_sheet = (EventSheet*)tree.GetItemData(pData->hAfter);
+
+					if (application->event_sheets.back() == drop_sheet)
+						application->event_sheets.push_back(sheet);
+					else
+						application->event_sheets.insert(++find(application->event_sheets.begin(), application->event_sheets.end(), drop_sheet), sheet);
+				}
+
+				// modify changed status
+				sheet->application->ChangeModifiedStatus(true);
+			}
+
+			// global variable
+			else if (image == image_global_variable)
+			{
+				CApplication::GlobalVariable* variable = (CApplication::GlobalVariable*)tree.GetItemData(pData->hItem);
+				CApplication* application = (CApplication*)tree.GetItemData(tree.GetParentItem(tree.GetParentItem(pData->hItem)));
+
+				// check it hasn't been moved
+				if (pData->hNewParent != tree.GetParentItem(pData->hItem))
+					return 1;
+
+				// check what happened
+				list<CApplication::GlobalVariable>::iterator i;
+				i = find(application->global_variables.begin(), application->global_variables.end(), *variable);
+
+				CApplication::GlobalVariable temporary = *i;
+
+				application->global_variables.erase(i);
+
+				if (pData->hAfter == TVI_FIRST)
+					application->global_variables.push_front(temporary);
+				else if (pData->hAfter == TVI_LAST)
+					application->global_variables.push_back(temporary);
+				else
+				{
+					CApplication::GlobalVariable* drop_variable = (CApplication::GlobalVariable*)tree.GetItemData(pData->hAfter);
+
+					if (application->global_variables.back().identifier == drop_variable->identifier)
+						application->global_variables.push_back(temporary);
+					else
+						application->global_variables.insert(find(application->global_variables.begin(), application->global_variables.end(), *drop_variable)++, temporary);
+				}
+			}
+
+			// dragged an object to a new object folder
+			else if (dragging_object)
+			{
+				// get parent image
+				int parent_image, parent_selected_image;
+				tree.GetItemImage(pData->hNewParent, parent_image, parent_selected_image);
+
+				dragging_object = false; // drag end
+				tree.always_shift = false;
+
+				if (parent_image != image_object_folder)
+					return 1;
+
+				// different parent?
+				if (pData->hNewParent != tree.GetParentItem(pData->hItem))
+				{
+					// get object type
+					CObjType* type = (CObjType*)tree.GetItemData(pData->hItem);
+
+					type->SetFolder(tree.GetItemText(pData->hNewParent));
+
+					tree.ExpandBranch(pData->hNewParent);
+					//update object bar
+					last_opened->object_bar.Refresh();
+
+					return 1;
+				}
+			}
 		}
 	}
 
 	return result;
-	*/
-	return 0; // Placeholder
 }

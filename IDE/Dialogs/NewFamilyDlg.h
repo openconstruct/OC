@@ -1,12 +1,11 @@
 #pragma once
-#include <afxdialogex.h> // Required for CDialogEx
 
 // CNewFamilyDlg dialog
 
-#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
-#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\anchor.h"
+#include "..\Utilities\dlgman.h"
 
-class CNewFamilyDlg : public CDialogEx // Changed base class
+class CNewFamilyDlg : public CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CNewFamilyDlg)
 
@@ -14,9 +13,9 @@ public:
 	CNewFamilyDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CNewFamilyDlg();
 
-	CListCtrl m_List;     // Already standard
-	CButton m_OK, m_Cancel, m_Manage; // Changed from CExtButton
-	CImageList m_Images;  // Already standard
+	CListCtrl m_List;
+	CExtButton m_OK, m_Cancel, m_Manage;
+	CImageList m_Images;
 	CApplication* application;
 
 	// Name and icon of chosen family
@@ -27,8 +26,8 @@ public:
 	CString m_Path;
 
 	// Resizable
-	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
-	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgAnchor dlgAnchor;
+	CDlgMan dlgMan;
 
 // Dialog Data
 	enum { IDD = IDD_NEWFAMILY };

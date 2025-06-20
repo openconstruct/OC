@@ -1,11 +1,10 @@
 #pragma once
 #include "..\Editors\LayoutEditor.h"
-#include <afxdialogex.h> // Required for CDialogEx
 
 /////////////////////////////////////////////////////////////////////////////
 // CArrayPasteDlg dialog
 
-class CArrayPasteDlg : public CDialogEx
+class CArrayPasteDlg : public CExtNCW<CExtResizableDialog>
 {
 // Construction
 public:
@@ -14,8 +13,8 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CArrayPasteDlg)
 	enum { IDD = IDD_ARRAYPASTE };
-	CButton m_OK;
-	CButton m_Cancel;
+	CExtButton m_OK;
+	CExtButton m_Cancel;
 		// NOTE: the ClassWizard will add data members here
 	//}}AFX_DATA
 

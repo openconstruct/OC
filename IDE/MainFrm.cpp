@@ -44,7 +44,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-// IMPLEMENT_SERIAL(CColorizedThemeOffice2003, CExtPaintManagerOffice2003, VERSIONABLE_SCHEMA|1 ); // Prof-UIS theme class removed
+IMPLEMENT_SERIAL(CColorizedThemeOffice2003, CExtPaintManagerOffice2003, VERSIONABLE_SCHEMA|1 );
 
 // About dialog
 #include "Dialogs\AboutDlg.h"
@@ -71,9 +71,9 @@ CIni* pINI;
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
 
-IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWndEx) // Changed base class
+IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWnd)
 
-BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx) // Changed base class
+BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	//{{AFX_MSG_MAP(CMainFrame)
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -102,7 +102,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx) // Changed base class
 	ON_COMMAND(ID_WEB_REPORTBUG, OnWebReportBug)
 	ON_COMMAND(ID_WEB_HELP, OnWebHelp)
 	ON_COMMAND(ID_WEB_UPDATE, OnWebUpdate)
-	// ON_REGISTERED_MESSAGE( CExtControlBar::g_nMsgConstructPopupMenu, OnConstructPopupMenuCB ) // Prof-UIS specific message
+	ON_REGISTERED_MESSAGE( CExtControlBar::g_nMsgConstructPopupMenu, OnConstructPopupMenuCB )
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -210,9 +210,17 @@ CMainFrame::CMainFrame()
 	ASSERT( pApp->m_pszProfileName != NULL );
 	ASSERT( pApp->m_pszProfileName[0] != _T('\0') );
 
-	// Prof-UIS Paint Manager and PopupMenuWnd settings removed.
-	// MFC uses CMFCVisualManager for themes.
-	// Example: CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows7));
+	if( ! g_PaintManager.PaintManagerStateLoad(
+			pApp->m_pszRegistryKey,
+			pApp->m_pszProfileName,
+			pApp->m_pszProfileName
+			)
+		)
+
+	g_PaintManager.InstallPaintManager(new CExtPaintManagerStudio2008);
+
+	CExtPopupMenuWnd::g_bMenuExpanding = false;
+	CExtPopupMenuWnd::g_bMenuHighlightRarely = false;
 
 	// Window placement persistence
 	::memset( &m_dataFrameWP, 0, sizeof(WINDOWPLACEMENT) );
@@ -242,17 +250,17 @@ CMainFrame::~CMainFrame()
 	}
 }
 
-// void CMainFrame::RecalcLayout(BOOL bNotify) // Base CFrameWnd handles this.
-// {
-// 	CMDIFrameWndEx :: RecalcLayout( bNotify );
-// }
+void CMainFrame::RecalcLayout(BOOL bNotify)
+{
+	CExtNCW < CMDIFrameWnd > :: RecalcLayout( bNotify );
+}
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
-	if( !CMDIFrameWndEx::PreCreateWindow(cs) ) // Changed base class
+	if( ! CExtNCW < CMDIFrameWnd > :: PreCreateWindow( cs ) )
 		return FALSE;
 
-	cs.dwExStyle &= ~(WS_EX_CLIENTEDGE/*|WS_EX_LAYOUT_RTL*/); // WS_EX_LAYOUT_RTL removal depends on RTL strategy
+	cs.dwExStyle &= ~(WS_EX_CLIENTEDGE|WS_EX_LAYOUT_RTL);
 	cs.lpszClass =
 		::AfxRegisterWndClass(
 			CS_BYTEALIGNCLIENT,
@@ -282,21 +290,38 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 		}
 		return TRUE;
 	}
-	// Prof-UIS specific RTL handling and CExtNcFrameImpl calls removed.
-	// if( nID == ID_RTL )
-	// {
-	// ...
-	// }
+	if( nID == ID_RTL )
+	{
+		if( nCode == CN_UPDATE_COMMAND_UI )
+		{
+			((CCmdUI *)pExtra)->Enable( g_PaintManager.m_bIsWinNT );
+			if( g_PaintManager.m_bIsWinNT )
+				((CCmdUI *)pExtra)->SetCheck(
+					( (GetExStyle()&WS_EX_LAYOUT_RTL) != 0 ) ? 1 : 0
+					);
+		}
+		else if( pExtra == NULL && g_PaintManager.m_bIsWinNT )
+		{
+			CExtNcFrameImpl::m_bNcFrameImpl_IsEnabled = false;
+			if( (GetExStyle()&WS_EX_LAYOUT_RTL) != 0 )
+				ModifyStyleEx( WS_EX_LAYOUT_RTL, 0, SWP_FRAMECHANGED );
+			else
+				ModifyStyleEx( 0, WS_EX_LAYOUT_RTL, SWP_FRAMECHANGED );
+			CExtNcFrameImpl::m_bNcFrameImpl_IsEnabled = true;
+			_AdjustRTL();
+		}
+		return TRUE;
+	}
 
-	CMDIFrameWndEx::OnCmdMsg( nID, nCode, pExtra, pHandlerInfo ); // Changed base class
+	CExtNCW < CMDIFrameWnd > :: OnCmdMsg( nID, nCode, pExtra, pHandlerInfo );
 	return TRUE;
 }
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) 
 {
-	// if( m_Ribbon.TranslateMainFrameMessage(pMsg) ) // CMFCRibbonBar handles this internally or differently
-	// 	return TRUE;
-	return CMDIFrameWndEx::PreTranslateMessage(pMsg); // Changed base class
+	if( m_Ribbon.TranslateMainFrameMessage(pMsg) )
+		return TRUE;
+	return CExtNCW < CMDIFrameWnd > :: PreTranslateMessage(pMsg);
 }
 
 BOOL CMainFrame::DestroyWindow() 
@@ -308,61 +333,58 @@ BOOL CMainFrame::DestroyWindow()
 	ASSERT( pApp->m_pszProfileName != NULL );
 	ASSERT( pApp->m_pszProfileName[0] != _T('\0') );
 
-	// Prof-UIS specific state saving removed.
-	// m_Ribbon.CustomizeStateSave(pApp->m_pszRegistryKey,	pApp->m_pszProfileName,	pApp->m_pszProfileName);
-	// CExtControlBar::ProfileBarStateSave(this, pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
-	// g_PaintManager.PaintManagerStateSave(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
-	// g_CmdManager->ProfileWndRemove(GetSafeHwnd());
-	// MFC equivalent for docking state: SaveMDIState(pApp->m_pszProfileName);
+	m_Ribbon.CustomizeStateSave(pApp->m_pszRegistryKey,	pApp->m_pszProfileName,	pApp->m_pszProfileName);
+	CExtControlBar::ProfileBarStateSave(this, pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
+	g_PaintManager.PaintManagerStateSave(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
+	g_CmdManager->ProfileWndRemove(GetSafeHwnd());
 	
-	return CMDIFrameWndEx::DestroyWindow(); // Changed base class
+	return CExtNCW < CMDIFrameWnd > :: DestroyWindow();
 }
 
 void CMainFrame::ActivateFrame(int nCmdShow) 
 {
-	// Prof-UIS specific NcFrameImpl calls and logic removed.
-	// bool bDwmMode = NcFrameImpl_IsDwmCaptionReplacement();
+	bool bDwmMode = NcFrameImpl_IsDwmCaptionReplacement();
 	// window placement persistence
 	if( m_dataFrameWP.showCmd != SW_HIDE )
 	{
-		// if( bDwmMode )
-		// 	NcFrameImpl_NcLock( true );
+		if( bDwmMode )
+			NcFrameImpl_NcLock( true );
 		SetWindowPlacement( &m_dataFrameWP );
-		CMDIFrameWndEx::ActivateFrame( m_dataFrameWP.showCmd ); // Changed base class
+		CExtNCW < CMDIFrameWnd > :: ActivateFrame( m_dataFrameWP.showCmd );
 		m_dataFrameWP.showCmd = SW_HIDE;
-		// if( bDwmMode )
-		// {
-		// 	NcFrameImpl_NcLock( false );
-		// 	NcFrameImpl_RecalcNcFrame();
-		// }
+		if( bDwmMode )
+		{
+			NcFrameImpl_NcLock( false );
+			NcFrameImpl_RecalcNcFrame();
+		}
 		return;
 	}
-	CMDIFrameWndEx::ActivateFrame( nCmdShow ); // Changed base class
-	// if( bDwmMode )
-	// 	NcFrameImpl_RecalcNcFrame();
+	CExtNCW < CMDIFrameWnd > :: ActivateFrame( nCmdShow );
+	if( bDwmMode )
+		NcFrameImpl_RecalcNcFrame();
 }
 
-// void CMainFrame::_AdjustRTL() // Prof-UIS specific, commented out from header
-// {
-// 	ASSERT_VALID( this );
-// 	if( (GetExStyle()&WS_EX_LAYOUT_RTL) != 0 )
-// 	{
-// 		m_Ribbon.ModifyStyleEx( 0, WS_EX_LAYOUTRTL, 0 );
-//
-// 		g_ResourceManager->SetLangLayout( LAYOUT_RTL );
-// 	}
-// 	else
-// 	{
-// 		m_Ribbon.ModifyStyleEx( WS_EX_LAYOUTRTL, 0, 0 );
-//
-// 		g_ResourceManager->SetLangLayout( LAYOUT_LTR );
-// 	}
-// 	m_Ribbon.Ribbon_UpdateLayout( true );
-// 	CExtNcFrameImpl::NcFrameImpl_RecalcNcFrame();
-// 	CExtNcFrameImpl::NcFrameImpl_SetupRgn();
-// 	if( IsWindowVisible() )
-// 		RedrawWindow( NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN );
-// }
+void CMainFrame::_AdjustRTL()
+{
+	ASSERT_VALID( this );
+	if( (GetExStyle()&WS_EX_LAYOUT_RTL) != 0 )
+	{
+		m_Ribbon.ModifyStyleEx( 0, WS_EX_LAYOUTRTL, 0 );
+
+		g_ResourceManager->SetLangLayout( LAYOUT_RTL );
+	}
+	else
+	{
+		m_Ribbon.ModifyStyleEx( WS_EX_LAYOUTRTL, 0, 0 );
+
+		g_ResourceManager->SetLangLayout( LAYOUT_LTR );
+	}
+	m_Ribbon.Ribbon_UpdateLayout( true );
+	CExtNcFrameImpl::NcFrameImpl_RecalcNcFrame();
+	CExtNcFrameImpl::NcFrameImpl_SetupRgn();
+	if( IsWindowVisible() )
+		RedrawWindow( NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN );
+}
 
 
 //////////////////////////////////////////////////////
@@ -383,12 +405,12 @@ void CMainFrame::OnContextHelp()
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	// Did the MDI Client create successfully?
-	if (CMDIFrameWndEx::OnCreate(lpCreateStruct) == -1) // Changed base class
+	if (CExtNCW < CMDIFrameWnd >::OnCreate(lpCreateStruct) == -1)
 		return -1;	
 
 	CPath path;
 	CWinApp * pApp = ::AfxGetApp();
-	// g_CmdManager->ProfileSetup(pApp->m_pszProfileName, GetSafeHwnd()); // Prof-UIS Command Manager
+	g_CmdManager->ProfileSetup(pApp->m_pszProfileName, GetSafeHwnd());
 
 	LoadLanguage("English (UK)");
 
@@ -494,107 +516,90 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	g_Language = m_INI.GetString("General", "Language", "English (UK)");
 	g_Language += ".txt";
 
-	// Ribbon Bar creation using CMFCRibbonBar
-	if (!m_Ribbon.Create(this))
-	{
-		TRACE0("Failed to create ribbon bar\n");
-		return -1;
-	}
-	// m_Ribbon.Init(); // Prof-UIS specific ribbon initialization
-	// _InitRibbonBar(); // This was for CExtRibbonNode, commented out
-	// m_Ribbon.Ribbon_PageSelectionSet(0, true); // Prof-UIS specific selection
-	// MFC Ribbon population would happen here (AddCategory, AddPanel, AddElement, etc.)
-	// For now, it will be an empty ribbon.
+	m_Ribbon.Create(NULL, this);
+	m_Ribbon.Init();
+	m_Ribbon.Ribbon_PageSelectionSet(0, true);
 
-	// CProfStudioPropertyGridCtrl& m_PGC = m_PropertiesBar.m_Grid; // m_PropertiesBar is a custom class
-	// m_PropertiesBar.m_pStore = &(m_PGC.m_PS); // Assuming m_PropertiesBar handles its grid internally
+	CProfStudioPropertyGridCtrl& m_PGC = m_PropertiesBar.m_Grid;
+	m_PropertiesBar.m_pStore = &(m_PGC.m_PS);
 	m_PropertiesBar.m_pGrid = &m_PGC;
 
 	// MDI tabs
 	tabs.Create(this, CRect(0,0,0,0), UINT(IDC_STATIC), WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS, __ETWS_MDI_DEFAULT | __ETWS_HIDE_ICONS | __ETWS_ITEM_DRAGGING);
 	tabs.ModifyTabWndStyle( 0, __ETWS_SHOW_BTN_TAB_LIST|__ETWS_ENABLED_BTN_TAB_LIST );
 
-	// Bars - Assuming these custom classes (ProjectBar, PropertiesBar, CLayerBar, AnimatorBar)
-	// will have their base classes changed to CDockablePane or similar MFC compatible docking class.
-	// Their Create() methods might need adjustment.
-	// For animator_parent (now CDockablePane), its Create method needs to be standard.
-	// The animator (CWnd) would then be created as a child of animator_parent's wrapper window.
-
-	// Example for a CDockablePane derived class:
-	// if (!project_bar.Create(BAR_PROJECT, this, CRect(0,0,200,200), TRUE, 123, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
-	// TRACE0("Failed to create project_bar\n");
-	// project_bar.EnableDocking(CBRS_ALIGN_ANY);
-	// DockPane(&project_bar);
-
-	// Simplified creation for now, actual docking and sizing will be very different from Prof-UIS.
+	// Bars
 	project_bar.Create(BAR_PROJECT, this, 123);
 	m_PropertiesBar.Create(BAR_PROPERTIES, this, 124);
 	m_LayerBar.Create(BAR_LAYERS, this, 125);
 
-	// For animator_parent (now CDockablePane)
-	if (!animator_parent.Create(BAR_ANIMATOR, this, CRect(0,0,200,200), TRUE, 127, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM | CBRS_FLOAT_MULTI))
-		TRACE0("Failed to create animator_parent dockable pane\n");
-	else {
-		animator.Create(IDD_ANIMATORBAR, &animator_parent); // animator is a CWnd, parented to the CDockablePane
-		animator.ShowWindow(SW_SHOW);
-		animator_parent.SetChildView(&animator); // Or similar method to embed animator in the pane
-	}
 
-	// UpdateTheme(); // Prof-UIS theme switching removed for now. Standard MFC themes apply.
+	animator_parent.Create(BAR_ANIMATOR, this, 127);
+	animator.Create(IDD_ANIMATORBAR, &animator_parent);
+	animator.ShowWindow(SW_SHOW);
+
+	UpdateTheme();
 
 	///////////////////
 	// SETUP DOCKING //
 	///////////////////
-	EnableDocking(CBRS_ALIGN_ANY); // Enable docking for the main frame
-	EnableAutoHidePanes(CBRS_ALIGN_ANY); // Enable auto-hide for docking panes
-
-	// Assuming ProjectBar, PropertiesBar, CLayerBar are now CDockablePane derived
 	project_bar.EnableDocking(CBRS_ALIGN_ANY);
 	m_PropertiesBar.EnableDocking(CBRS_ALIGN_ANY);
 	m_LayerBar.EnableDocking(CBRS_ALIGN_ANY);
 	animator_parent.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&project_bar);
-	DockPane(&m_PropertiesBar, AFX_IDW_DOCKBAR_LEFT);
-	DockPane(&m_LayerBar);
-	m_LayerBar.DockToWindow(&project_bar, CBRS_ALIGN_BOTTOM); // Example of tabbed docking
-	DockPane(&animator_parent);
-
 
 	g_MainFrame = this;
 
-	// CExtControlBar::FrameEnableDocking(this);       // Replaced by EnableDocking
-	// CExtControlBar::FrameInjectAutoHideAreas(this);	// Replaced by EnableAutoHidePanes
+	CExtControlBar::FrameEnableDocking(this);       // Allow docking
+	CExtControlBar::FrameInjectAutoHideAreas(this);	// Allow pinning
 
-	// Status Bar - using CMFCStatusBar
-	if (!m_wndStatusBar.CreateEx(this, SBT_TOOLTIPS)) // SBT_TOOLTIPS for tooltip support on panes
-	{
-		TRACE0("Failed to create status bar\n");
-		return -1;      // fail to create
-	}
+	m_wndStatusBar.Create(this);
 	m_wndStatusBar.SetIndicators(indicators,  sizeof(indicators)/sizeof(UINT));
-	// CMFCStatusBar uses SetPaneInfo to set width, style, ID
-	m_wndStatusBar.SetPaneInfo(0, ID_SEPARATOR, SBPS_NORMAL, 70); // Example for first pane
-	m_wndStatusBar.SetPaneInfo(1, ID_INDICATOR_CAPS, SBPS_STRETCH, 0); // Example stretch pane
-	// Add more panes as needed using SetPaneInfo or AddElement/AddExtendedElement for complex panes
+	m_wndStatusBar.AddPane(1,1);
+	m_wndStatusBar.SetPaneWidth(1, 50);
+	m_wndStatusBar.AddPane(2,2);
+	m_wndStatusBar.SetPaneWidth(2, 100);
 
-	// Load settings - MFC's LoadMDIState would be used for docking layout, ribbon state.
-	// m_Ribbon.CustomizeStateLoad(pApp->m_pszRegistryKey,	pApp->m_pszProfileName,	pApp->m_pszProfileName); // Prof-UIS
-	// CExtControlBar::ProfileBarStateLoad(...) // Prof-UIS
-	// LoadMDIState(pApp->m_pszProfileName); // MFC equivalent for docking/toolbar states
+	// Load settings
+	m_Ribbon.CustomizeStateLoad(pApp->m_pszRegistryKey,	pApp->m_pszProfileName,	pApp->m_pszProfileName);
 
-	// Prof-UIS specific docking markers and grid settings removed.
-	// CExtControlBar::g_eResizablePanelDockingType = CExtControlBar::__RESIZABLE_DOCKING_TYPE_STUDIO_2005;
-	// CExtPropertyGridComboBoxBar* pWnd = STATIC_DOWNCAST(CExtPropertyGridComboBoxBar, m_PGC.GetChildByRTC(RUNTIME_CLASS(CExtPropertyGridComboBoxBar)));
-	// pWnd->ShowWindow(SW_HIDE);
-	// CExtPropertyGridTipBar* pTipBar = STATIC_DOWNCAST(CExtPropertyGridTipBar, m_PGC.GetChildByRTC(RUNTIME_CLASS(CExtPropertyGridTipBar)));
-	// if(pTipBar != NULL)
-	// 	pTipBar->HeightMinSet(55);
-	// m_PGC.Invalidate();
-	// m_PropertiesBar.RedrawWindow();
+	if(!CExtControlBar::ProfileBarStateLoad(this,pApp->m_pszRegistryKey,
+			pApp->m_pszProfileName,
+			pApp->m_pszProfileName,
+			&m_dataFrameWP))
+	{
+		m_PropertiesBar.DockControlBar(AFX_IDW_DOCKBAR_LEFT, true);
+		m_PropertiesBar.SetInitDesiredSizeVertical(CSize(210, 400));
 
+		// Bar sizes
+		m_LayerBar.SetInitDesiredSizeVertical(CSize(210, 400));
+		project_bar.SetInitDesiredSizeVertical(CSize(210, 400));
+		animator_parent.SetInitDesiredSizeVertical(CSize(210, 400));
+
+		// Initial docking settings
+		project_bar.DockControlBarInnerOuter(AFX_IDW_DOCKBAR_RIGHT, true);
+		project_bar.DockControlBarIntoTabbedContainer(&m_LayerBar, 1, NULL, true);
+		project_bar.DockControlBarIntoTabbedContainer(&animator_parent, 1, NULL, true);
+		project_bar.SetInitDesiredSizeVertical(CSize(210, 200));
+	}
+
+	// Docking markers
+	CExtControlBar::g_eResizablePanelDockingType = CExtControlBar::__RESIZABLE_DOCKING_TYPE_STUDIO_2005;
+
+	// Hide the property grid combo
+	CExtPropertyGridComboBoxBar* pWnd = STATIC_DOWNCAST(CExtPropertyGridComboBoxBar, m_PGC.GetChildByRTC(RUNTIME_CLASS(CExtPropertyGridComboBoxBar)));
+	pWnd->ShowWindow(SW_HIDE);
+
+	// Set tip bar height
+	CExtPropertyGridTipBar* pTipBar = STATIC_DOWNCAST(CExtPropertyGridTipBar, m_PGC.GetChildByRTC(RUNTIME_CLASS(CExtPropertyGridTipBar)));
+	if(pTipBar != NULL)
+		pTipBar->HeightMinSet(55);
+
+	m_PGC.Invalidate();
+	m_PropertiesBar.RedrawWindow();
 
 	SetTimer(500, 500, NULL);
-	// ActivateFrame(0); // ActivateFrame is called by the framework
+	ActivateFrame(0);
 
 	// Auto save
 	if (m_INI.GetInt("AutoSave", "On", 0) == 1)
@@ -851,7 +856,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
 
 void CMainFrame::OnClose() 
 {
-	// Loop apps check saved // Base call already changed to CMDIFrameWndEx in Block 1
+	// Loop apps check saved
 	CApplication *app;
 	POSITION pos = m_apps.GetHeadPosition();
 
@@ -886,7 +891,7 @@ void CMainFrame::OnClose()
 	}
 
 	//has_been_closed = true;	// stop layout editors crashing trying to access apps deleted above
-	CMDIFrameWndEx::OnClose(); // Ensure this is CMDIFrameWndEx
+	CMDIFrameWnd::OnClose();
 
 	// Delete apps after closing main window & docs
 	std::vector<CApplication*>::iterator i = apps_to_delete.begin();
@@ -899,71 +904,114 @@ void CMainFrame::OnClose()
 
 void CMainFrame::OnSize(UINT nType, int cx, int cy) 
 {
-	CMDIFrameWndEx::OnSize(nType, cx, cy); // Base call already changed in Block 1
+	CExtNCW < CMDIFrameWnd >::OnSize(nType, cx, cy);
 }
 
 void CMainFrame::UpdateTheme()
 {
-	// Prof-UIS Theme switching logic removed.
-	// MFC Visual Manager would be used here if theme switching is desired.
-	// Example: CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
-	// AfxGetMainWnd()->RedrawWindow( NULL, NULL, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE );
-
-	// For now, this function will do nothing, or apply a default MFC theme if desired.
-	// To apply a theme (VS 2008 look for example):
-	// CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerVS2008));
-    // CDockingManager::SetDockingMode(DT_SMART); // Optional: for smart docking markers
-    // RedrawWindow(NULL, NULL, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_FRAME);
-
-
-	// The INI writing for theme should also be removed or adapted if using MFC visual managers
-	// m_INI.WriteInt("General", "Theme", new_theme_id);
+	// Load theme
+	switch (m_INI.GetInt("General", "Theme", 4)) {
+		case 0:
+			OnXP();
+			break;
+		case 1:
+			OnOfficeXP();
+			break;
+		case 2:
+			On2003();
+			break;
+		case 3:
+			On2005();
+			break;
+		case 4:
+			On2008();
+			break;
+		case 5:
+			OnLunaBlue();
+			break;
+		case 6:
+			OnLunaSilver();
+			break;
+		case 7:
+			OnLunaBlack();
+			break;
+		default:
+			On2008();
+			break;
+	}
 }
 
-// All OnXP(), OnOfficeXP(), On2003(), On2005(), On2008(), OnLunaBlue(), OnLunaSilver(), OnLunaBlack()
-// methods are commented out as they are Prof-UIS specific theme handlers.
-
-/*
 void CMainFrame::OnXP() 
 {
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(
+	  new CExtPaintManagerXP
+	);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 0);
 }
 
 void CMainFrame::OnOfficeXP() 
 {
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(
+	  new CExtPaintManagerNativeXP
+	);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 1);
 }
 
 void CMainFrame::On2003() 
 {  
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2003NoThemes);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 2);
 }
 
 void CMainFrame::On2005() 
 {   
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(new CExtPaintManagerStudio2005);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 3);
 }
 
 void CMainFrame::On2008() 
 {   
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(new CExtPaintManagerStudio2008);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 4);
 }
 
 void CMainFrame::OnLunaBlue() 
 {  
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(
+      RUNTIME_CLASS( CExtPaintManagerOffice2007_Blue )
+	);
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 5);
 }
 
 void CMainFrame::OnLunaSilver() 
 {   
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(
+	  RUNTIME_CLASS( CExtPaintManagerOffice2007_Silver )
+	);
+
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 6);
 }
 
 void CMainFrame::OnLunaBlack() 
 {  
-	// ... Prof-UIS specific ...
+	g_PaintManager.InstallPaintManager(
+	  RUNTIME_CLASS( CExtPaintManagerOffice2007_Black )
+	);
+	// Write theme to INI
+	m_INI.WriteInt("General", "Theme", 7);
 }
-*/
 
 void CMainFrame::OnPreview()
 {
