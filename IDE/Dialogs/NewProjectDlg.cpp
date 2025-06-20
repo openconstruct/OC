@@ -4,10 +4,10 @@
 #include "NewProjectDlg.h"
 
 // CNewProjectDlg dialog
-IMPLEMENT_DYNAMIC(CNewProjectDlg, CDialog)
+IMPLEMENT_DYNAMIC(CNewProjectDlg, CDialogEx)
 
 CNewProjectDlg::CNewProjectDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CNewProjectDlg::IDD, pParent)
+	: CDialogEx(CNewProjectDlg::IDD, pParent)
 {
 
 }
@@ -18,14 +18,14 @@ CNewProjectDlg::~CNewProjectDlg()
 
 void CNewProjectDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_PROFILE, m_Profile);
 	DDX_Control(pDX, IDC_EDITPROFILES, m_EditProfiles);
 	DDX_Control(pDX, IDC_NAME, m_Name);
 	DDX_Control(pDX, IDOK, m_OK);
 }
 
-BEGIN_MESSAGE_MAP(CNewProjectDlg, CDialog)
+BEGIN_MESSAGE_MAP(CNewProjectDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CNewProjectDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_EDITPROFILES, &CNewProjectDlg::OnBnClickedEditprofiles)
 END_MESSAGE_MAP()
@@ -33,10 +33,9 @@ END_MESSAGE_MAP()
 // CNewProjectDlg message handlers
 BOOL CNewProjectDlg::OnInitDialog()
 {
-	BOOL ret = CDialog::OnInitDialog();
+	BOOL ret = CDialogEx::OnInitDialog();
 
-	//SubclassChildControls();
-
+	// SubclassChildControls(); // Removed
 	return ret;
 }
 

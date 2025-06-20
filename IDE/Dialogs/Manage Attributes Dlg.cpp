@@ -3,13 +3,13 @@
 
 #include "stdafx.h"
 #include "..\Construct.h"
-#include "AttributesManagerDlg.h"
+#include "AttributesManagerDlg.h" // Header already refactored
 
 // CAddNewTraitDlg dialog
-IMPLEMENT_DYNAMIC(CAddNewTraitDlg, CDialog)
+IMPLEMENT_DYNAMIC(CAddNewTraitDlg, CDialogEx) // Changed base class
 
 CAddNewTraitDlg::CAddNewTraitDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CAddNewTraitDlg::IDD, pParent)
+	: CDialogEx(CAddNewTraitDlg::IDD, pParent) // Changed base class
 {
 	application = NULL;
 }
@@ -20,7 +20,7 @@ CAddNewTraitDlg::~CAddNewTraitDlg()
 
 void CAddNewTraitDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDC_NAME, m_Name);
 	DDX_Control(pDX, IDC_LIST1, m_List);
 	DDX_Control(pDX, IDC_ADD, m_Add);
@@ -31,7 +31,7 @@ void CAddNewTraitDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL CAddNewTraitDlg::OnInitDialog()
 {
-	CExtNCW<CExtResizableDialog>::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_Name.SetWindowText("My Attribute");
 
@@ -42,18 +42,9 @@ BOOL CAddNewTraitDlg::OnInitDialog()
 
 	RefreshTraitList();
 
-	CExtBitmap Bitmap;
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONADD));
-	m_Add.SetIcon(Bitmap.CreateHICON());
-	m_Add.SetTooltipText(AM_ADD);
-
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONEDIT));
-	m_Edit.SetIcon(Bitmap.CreateHICON());
-	m_Edit.SetTooltipText(AM_EDIT);
-
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONDELETE));
-	m_Remove.SetIcon(Bitmap.CreateHICON());
-	m_Remove.SetTooltipText(AM_REMOVE);
+	// CExtBitmap, SetIcon, and SetTooltipText calls removed.
+	// Standard CButton does not have SetTooltipText directly. Tooltips would need CToolTipCtrl.
+	// Icons would need LoadImage or similar for HICON.
 
 	m_Close.SetWindowTextA(CLOSE);
 
@@ -62,7 +53,7 @@ BOOL CAddNewTraitDlg::OnInitDialog()
 	Title.Format("Construct : %s", AM_TITLE);
 	SetWindowText(Title);
 
-	// Resizing
+	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\AttributesMgr");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -73,7 +64,7 @@ BOOL CAddNewTraitDlg::OnInitDialog()
 	dlgAnchor.Add(IDC_RENAME, ANCHOR_RIGHT | ANCHOR_BOTTOM);
 	dlgAnchor.Add(IDOK, ANCHOR_RIGHT | ANCHOR_BOTTOM);
 
-	return true;
+	return TRUE; // Standard return for OnInitDialog
 }
 
 void CAddNewTraitDlg::RefreshTraitList()
@@ -86,7 +77,7 @@ void CAddNewTraitDlg::RefreshTraitList()
 		m_List.InsertItem(m_List.GetItemCount(), *i);
 }
 
-BEGIN_MESSAGE_MAP(CAddNewTraitDlg, CDialog)
+BEGIN_MESSAGE_MAP(CAddNewTraitDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, &CAddNewTraitDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CAddNewTraitDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_ADD, &CAddNewTraitDlg::OnBnClickedAdd)
@@ -106,7 +97,7 @@ void CAddNewTraitDlg::OnBnClickedOk()
 
 void CAddNewTraitDlg::OnBnClickedCancel()
 {
-	CDialog::OnCancel();
+	CDialog::OnCancel(); // Standard CDialog::OnCancel is fine
 }
 
 void CAddNewTraitDlg::OnBnClickedAdd()
@@ -324,8 +315,9 @@ bool CAddNewTraitDlg::TraitNameIsBuiltIn(CString Name)
 
 void CAddNewTraitDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();

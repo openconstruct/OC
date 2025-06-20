@@ -19,9 +19,10 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // CAddCommentDlg dialog
+IMPLEMENT_DYNAMIC(CAddCommentDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 CAddCommentDlg::CAddCommentDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CAddCommentDlg::IDD, pParent)
+	: CDialogEx(CAddCommentDlg::IDD, pParent) // Changed base class
 {
 	memset(&lf, 0, sizeof(LOGFONT));
 	
@@ -32,7 +33,7 @@ CAddCommentDlg::CAddCommentDlg(CWnd* pParent /*=NULL*/)
 
 void CAddCommentDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	//{{AFX_DATA_MAP(CAddCommentDlg)
 	DDX_Control(pDX, IDC_FONT, m_Font);
 	DDX_Control(pDX, IDC_COMMENT, m_Comment);
@@ -42,7 +43,7 @@ void CAddCommentDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CAddCommentDlg, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(CAddCommentDlg, CDialogEx) // Changed base class
 	//{{AFX_MSG_MAP(CAddCommentDlg)
 	ON_BN_CLICKED(IDC_ADD, OnAdd)
 	ON_BN_CLICKED(IDC_CLOSE, OnClose)
@@ -58,7 +59,7 @@ END_MESSAGE_MAP()
 
 BOOL CAddCommentDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_Add.SetWindowText("OK");
 	m_Close.SetWindowText(CANCEL);
@@ -72,7 +73,7 @@ BOOL CAddCommentDlg::OnInitDialog()
 	title.Format("Construct : %s", EE_EDITCOMMENT);
 	SetWindowText(title);
 
-	// Add resizing
+	// Add resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\CommentDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -91,7 +92,7 @@ void CAddCommentDlg::OnAdd()
 	// Get comment
 	m_Comment.GetWindowText(theComment);
 
-	CDialog::OnOK();	
+	CDialogEx::OnOK();	// Changed base class
 }
 
 void CAddCommentDlg::OnClose() 
@@ -101,8 +102,9 @@ void CAddCommentDlg::OnClose()
 
 void CAddCommentDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();	
 
 	Invalidate();
@@ -110,8 +112,9 @@ void CAddCommentDlg::OnSize(UINT nType, int cx, int cy)
 
 void CAddCommentDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
+	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 

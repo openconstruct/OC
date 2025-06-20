@@ -27,8 +27,10 @@ void CEmptyListCtrl::OnPaint()
     Default();
     if (GetItemCount() <= 0)
     {
-        COLORREF clrText = ::g_PaintManager->GetColor(COLOR_WINDOWTEXT);
-        COLORREF clrTextBk = ::g_PaintManager->GetColor(COLOR_WINDOW);
+        // COLORREF clrText = ::g_PaintManager->GetColor(COLOR_WINDOWTEXT); // Prof-UIS
+        // COLORREF clrTextBk = ::g_PaintManager->GetColor(COLOR_WINDOW); // Prof-UIS
+        COLORREF clrText = GetSysColor(COLOR_WINDOWTEXT); // Standard MFC
+        COLORREF clrTextBk = GetSysColor(COLOR_WINDOW);   // Standard MFC
 
         CDC* pDC = GetDC();
         // Save dc state
@@ -67,7 +69,9 @@ void CEmptyListCtrl::OnPaint()
 
 /////////////////////////////////////////////////////////////////////////////
 // CObjectInfoDlg dialog
-CObjectInfoDlg::CObjectInfoDlg(CWnd* pParent /*=NULL*/) : CExtNCW<CExtResizableDialog>(CObjectInfoDlg::IDD, pParent)
+IMPLEMENT_DYNAMIC(CObjectInfoDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
+
+CObjectInfoDlg::CObjectInfoDlg(CWnd* pParent /*=NULL*/) : CDialogEx(CObjectInfoDlg::IDD, pParent) // Changed base class
 {
 	//{{AFX_DATA_INIT(CObjectInfoDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -76,7 +80,7 @@ CObjectInfoDlg::CObjectInfoDlg(CWnd* pParent /*=NULL*/) : CExtNCW<CExtResizableD
 
 void CObjectInfoDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	//{{AFX_DATA_MAP(CObjectInfoDlg)
 	DDX_Control(pDX, IDCLOSE, m_Close);
 	DDX_Control(pDX, IDC_ACE, m_AceType);
@@ -87,7 +91,7 @@ void CObjectInfoDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CObjectInfoDlg, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(CObjectInfoDlg, CDialogEx) // Changed base class
 	//{{AFX_MSG_MAP(CObjectInfoDlg)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -101,9 +105,9 @@ END_MESSAGE_MAP()
 
 BOOL CObjectInfoDlg::OnInitDialog() 
 {
-	CExtResizableDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
-	// Resizing
+	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\ObjectInformaitDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -168,15 +172,17 @@ BOOL CObjectInfoDlg::OnInitDialog()
 
 void CObjectInfoDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();	
 }
 
 void CObjectInfoDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
+	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();	
 }
 

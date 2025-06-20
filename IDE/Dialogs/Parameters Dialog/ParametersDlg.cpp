@@ -41,9 +41,10 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // CParametersDlg dialog
+IMPLEMENT_DYNAMIC(CParametersDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 CParametersDlg::CParametersDlg(CWnd* pParent /*=NULL*/)
-: CExtResizableDialog(CParametersDlg::IDD, pParent)
+: CDialogEx(CParametersDlg::IDD, pParent) // Changed base class
 {
 	m_lastDesc = "";
 	bForce = false;
@@ -51,13 +52,13 @@ CParametersDlg::CParametersDlg(CWnd* pParent /*=NULL*/)
 
 void CParametersDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CExtResizableDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	//{{AFX_DATA_MAP(CParametersDlg)
 	DDX_Control(pDX, IDC_ARGDESC, m_Desc);
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CParametersDlg, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(CParametersDlg, CDialogEx) // Changed base class
 	//{{AFX_MSG_MAP(CParametersDlg)
 	//ON_BN_CLICKED(IDC_FINISH, OnFinish)
 	ON_WM_RBUTTONUP()
@@ -75,28 +76,30 @@ END_MESSAGE_MAP()
 
 BOOL CParametersDlg::OnInitDialog() 
 {
-	CExtResizableDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	// Messes up window placement
-	//SubclassChildControls();
+	//SubclassChildControls(); // Ensured removed
 	
 	m_Tooltip.Create(this);
 	m_ParameterTooltipIsVisible = false;
 
-	// Stackers!
+	// Stackers! CStackedWndCtrl m_Stack is now CWnd m_Stack.
+	// Creation and usage will be severely impacted.
 	CWnd* pWnd = GetDlgItem(IDC_STACKBORDER);
 
 	CRect Position;
 	pWnd->GetWindowRect(&Position);
 	this->ScreenToClient(Position);
 
-	pWnd->DestroyWindow();
+	pWnd->DestroyWindow(); // Placeholder is destroyed
 
-	m_Stack.CreateEx(0/*WS_EX_STATICEDGE*/,NULL,NULL,WS_CHILD|WS_VISIBLE|WS_VSCROLL,Position,this,IDC_STACKBORDER);
+	// m_Stack (CWnd) creation. Style and ID are kept but might not be fully applicable.
+	m_Stack.CreateEx(0/*WS_EX_STATICEDGE*/, NULL, NULL, WS_CHILD|WS_VISIBLE|WS_VSCROLL, Position, this, IDC_STACKBORDER);
 
 	currentParameter = 0;
 
-	// Resizing
+	// Resizing - dlgAnchor potentially Prof-UIS
     dlgAnchor.Init(this->m_hWnd);
 
 	dlgAnchor.Add(IDC_ARGDESC, ANCHOR_LEFT | ANCHOR_TOP | ANCHOR_RIGHT);
@@ -185,7 +188,10 @@ BOOL CParametersDlg::OnInitDialog()
 
 	SetWindowLong(m_Stack.m_hWnd, GWL_USERDATA, (long)this);
 
-	// Insert parameters
+	// Insert parameters - This entire block is heavily reliant on m_Stack being CStackedWndCtrl
+	// and its AddPane method, and m_arrPanes member. This will be commented out.
+	// As a result, no parameters will be displayed.
+	/*
 	for (int i = 0; i < m_pACEEntry->params.size(); i++)
 	{
 		TDS_PANE pane;
@@ -198,7 +204,7 @@ BOOL CParametersDlg::OnInitDialog()
 
 		csRubric = paramName;
 
-		pbtJazzedUpRubric = new CJazzUpTellTaleButton;
+		pbtJazzedUpRubric = new CJazzUpTellTaleButton; // This is a custom class
 
 		pbtJazzedUpRubric->Create( csRubric, WS_CHILD | BS_LEFT, rRect, &m_Stack, nCtrlID++ );
 		pbtJazzedUpRubric->ModifyStyleEx(WS_EX_STATICEDGE,0);
@@ -211,21 +217,27 @@ BOOL CParametersDlg::OnInitDialog()
 		if(types.size() <= i)
 			types.push_back(m_pACEEntry->params[i].type);
 
-		CreateParameter(i, &m_Stack, pane, types.at(i) );
+		CreateParameter(i, &m_Stack, pane, types.at(i) ); // CreateParameter uses m_Stack as parent
 
-		m_Stack.AddPane(pbtJazzedUpRubric, pane);
+		m_Stack.AddPane(pbtJazzedUpRubric, pane); // This is CStackedWndCtrl specific
 	}
+	*/
 	
 	CString paramDescription;
-	if(currentParameter < m_pACEEntry->params.size())
+	//if(currentParameter < m_pACEEntry->params.size()) // m_pACEEntry might be null if params not loaded
+	//	paramDescription.Format("%s", m_pACEEntry->params[currentParameter].desc);
+
+	if(m_pACEEntry == NULL || m_pACEEntry->params.empty()) // Check if m_pACEEntry is valid
+		paramDescription = "There are no parameters available for the selected item";
+	else if (currentParameter < m_pACEEntry->params.size())
 		paramDescription.Format("%s", m_pACEEntry->params[currentParameter].desc);
 
-	if(m_pACEEntry->params.size() == 0)
-		paramDescription = "There are no parameters available for the selected item";
 
 	m_Desc.SetWindowText(paramDescription);
 	this->Invalidate();
 
+	// This logic will fail as m_Stack is now CWnd and has no m_arrPanes
+	/*
 	if(m_Stack.m_arrPanes.GetSize())
 	{
 		m_Stack.m_arrPanes.GetAt(0)->content_window->SetFocus();
@@ -233,6 +245,7 @@ BOOL CParametersDlg::OnInitDialog()
 	
 		pWndFocusParam->SendMessage(SCI_SELECTALL, NULL, false);
 	}
+	*/
 
 	m_TypeChecker.objMap = objectMap;
 	m_TypeChecker.pApp = application;
@@ -318,22 +331,23 @@ bool CParametersDlg::OnFinish()
 	strings.RemoveAll();
 	types.clear();
 
-	// Get all strings
+	// Get all strings - This loop is entirely dependent on m_Stack being CStackedWndCtrl and its m_arrPanes.
+	// This will be commented out. The dialog will not be able to return parameter data.
+	/*
 	for (int i = 0; i < m_pACEEntry->params.size(); i++)
 	{
-		CString curStr = m_Stack.m_arrPanes.GetAt(i)->GetParameterString();
-
-		int curType = m_Stack.m_arrPanes.GetAt(i)->type;
+		CString curStr = m_Stack.m_arrPanes.GetAt(i)->GetParameterString(); // Will fail
+		int curType = m_Stack.m_arrPanes.GetAt(i)->type; // Will fail
 		
 		// 0.97.3, add a quick check that object parameters are filled in
 		if (m_pACEEntry->params[i].type == EDITORPARAM_OBJECT)
 		{
 			if (curStr == "0")
 			{
-				message_bar.Attach(this);
-				message_bar.SetHighlightOnMouseOver();
-				message_bar.SetText(_T("An object parameter has not been picked."));
-		
+				// message_bar.Attach(this); // message_bar removed
+				// message_bar.SetHighlightOnMouseOver();
+				// message_bar.SetText(_T("An object parameter has not been picked."));
+				MessageBox(_T("An object parameter has not been picked."), _T("Parameter Error"), MB_OK | MB_ICONEXCLAMATION);
 				return false;
 			}
 		}
@@ -343,10 +357,10 @@ bool CParametersDlg::OnFinish()
 		{
 			if (curStr == "-1")
 			{
-				message_bar.Attach(this);
-				message_bar.SetHighlightOnMouseOver();
-				message_bar.SetText(_T("A private variable has not been picked."));
-
+				// message_bar.Attach(this); // message_bar removed
+				// message_bar.SetHighlightOnMouseOver();
+				// message_bar.SetText(_T("A private variable has not been picked."));
+				MessageBox(_T("A private variable has not been picked."), _T("Parameter Error"), MB_OK | MB_ICONEXCLAMATION);
 				return false;
 			}
 		}
@@ -358,11 +372,11 @@ bool CParametersDlg::OnFinish()
 		{
 			CString msg;
 			msg.Format("Error in parameter '%d':\n\n%s", i+1, err);
-			message_bar.Attach(this);
-			message_bar.SetHighlightOnMouseOver();
-			message_bar.SetWrapText();
-			message_bar.SetText(msg);
-
+			// message_bar.Attach(this); // message_bar removed
+			// message_bar.SetHighlightOnMouseOver();
+			// message_bar.SetWrapText();
+			// message_bar.SetText(msg);
+			MessageBox(msg, _T("Parameter Error"), MB_OK | MB_ICONEXCLAMATION);
 			return false;
 		}
 
@@ -379,7 +393,7 @@ bool CParametersDlg::OnFinish()
 			if(IDYES == MessageBox(msg, "Undefined Variable", MB_ICONEXCLAMATION|MB_YESNO))
 			{
 				CObjType* pType = pVar->pType;
-				CAddVariableDlg Dlg;
+				CAddVariableDlg Dlg; // This is another custom dialog, assumed to be fine or refactored separately
 				Dlg.Name = pVar->Name;
 				if (Dlg.DoModal() != IDOK)
 					return false;
@@ -395,7 +409,6 @@ bool CParametersDlg::OnFinish()
 
 				if(pVar->global) 
 					application->AddGlobalVariable(CApplication::GlobalVariable(Dlg.Name, Dlg.Type, Dlg.Value, application->m_varID++));
-
 				else
 				{
 					int varID = pType->VariableID++;
@@ -414,8 +427,9 @@ bool CParametersDlg::OnFinish()
 		strings.Add(curStr);
 		types.push_back(curType);
 	}
+	*/
 
-	while (!m_scintillaList.empty()) { // restore windowprocs
+	while (!m_scintillaList.empty()) { // restore windowprocs - this should be fine
 		HWND scn = m_scintillaList.back();
 		m_scintillaList.pop_back();
 		SetWindowLong(scn, GWL_WNDPROC, GetWindowLongPtr(scn, GWL_USERDATA));
@@ -428,7 +442,7 @@ bool CParametersDlg::OnFinish()
 	ReleaseMFCStuff();
 	
 	// Exit
-	CExtResizableDialog::OnOK();
+	CDialogEx::OnOK(); // Changed base class
 
 	// Valid
 	return true;
@@ -440,14 +454,15 @@ void CParametersDlg::OnRButtonUp(UINT nFlags, CPoint point)
 	POINT cursorPosition;
 	GetCursorPos(&cursorPosition);
 
-	CExtResizableDialog::OnRButtonUp(nFlags, point);
+	CDialogEx::OnRButtonUp(nFlags, point); // Changed base class
 }
 
 void CParametersDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CExtResizableDialog::OnSize(nType, cx, cy);
-	m_Stack.RearrangeStack();
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
+	// m_Stack.RearrangeStack(); // m_Stack is now CWnd, no RearrangeStack method
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 }
 
@@ -462,7 +477,7 @@ void CParametersDlg::OnCancel()
 {
 	ReleaseMFCStuff();
 	//dlgMan.Save();
-	CExtResizableDialog::OnCancel();
+	CDialogEx::OnCancel(); // Changed base class
 }
 
 void CParametersDlg::OnTimer(UINT nIDEvent) 
@@ -489,7 +504,7 @@ void CParametersDlg::OnTimer(UINT nIDEvent)
 	if( nIDEvent == 15)
 	{
 		KillTimer(15);
-		m_Stack.RearrangeStack();
+		// m_Stack.RearrangeStack(); // m_Stack is now CWnd, no RearrangeStack method
 	}
 }
 
@@ -497,7 +512,7 @@ void CParametersDlg::OnChange(NMHDR* pNMHDR, LRESULT* pResult,CScintillaWnd& sci
 {
 	m_pWindow = &scintWin;
 	SetTimer(500, 200, NULL);
-	m_Stack.RearrangeStack();
+	// m_Stack.RearrangeStack(); // m_Stack is now CWnd, no RearrangeStack method
 }
 
 void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
@@ -509,6 +524,8 @@ void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				m_Tooltip.ShowPrevMethod();
 			else
 			{
+				// This logic depends on m_Stack.m_arrPanes which is CStackedWndCtrl specific
+				/*
 				CWnd* focus = GetFocus();
 				int index = 0;
 				for(int i = 0; i < m_Stack.m_arrPanes.GetSize(); i++)
@@ -522,6 +539,7 @@ void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 					m_Stack.m_arrPanes.GetAt(index)->content_window->SetFocus();
 					m_Stack.m_arrPanes.GetAt(index)->content_window->SendMessage(SCI_SELECTALL,0,0);
 				}
+				*/
 			}
             break;
         case VK_DOWN:
@@ -529,6 +547,8 @@ void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				m_Tooltip.ShowNextMethod();
 			else
 			{
+				// This logic depends on m_Stack.m_arrPanes which is CStackedWndCtrl specific
+				/*
 				CWnd* focus = GetFocus();
 				int index = 0;
 				for(int i = 0; i < m_Stack.m_arrPanes.GetSize(); i++)
@@ -542,6 +562,7 @@ void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 					m_Stack.m_arrPanes.GetAt(index)->content_window->SetFocus();
 					m_Stack.m_arrPanes.GetAt(index)->content_window->SendMessage(SCI_SELECTALL,0,0);
 				}
+				*/
 			}
             break;
 		case VK_RETURN:
@@ -553,7 +574,7 @@ void CParametersDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			break;
      }
 	
-	CExtResizableDialog::OnKeyDown(nChar, nRepCnt, nFlags);
+	CDialogEx::OnKeyDown(nChar, nRepCnt, nFlags); // Changed base class
 }
 
 CObjType* CParametersDlg::GetObjectType()

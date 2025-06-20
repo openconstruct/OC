@@ -15,7 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // CArrayPasteDlg dialog
 
 
-CArrayPasteDlg::CArrayPasteDlg(CWnd* pParent /*=NULL*/) : CExtNCW<CExtResizableDialog>(CArrayPasteDlg::IDD, pParent)
+CArrayPasteDlg::CArrayPasteDlg(CWnd* pParent /*=NULL*/) : CDialogEx(CArrayPasteDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CArrayPasteDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -26,7 +26,7 @@ CArrayPasteDlg::CArrayPasteDlg(CWnd* pParent /*=NULL*/) : CExtNCW<CExtResizableD
 
 void CArrayPasteDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CArrayPasteDlg)
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDOK, m_OK);
@@ -34,7 +34,7 @@ void CArrayPasteDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CArrayPasteDlg, CDialog)
+BEGIN_MESSAGE_MAP(CArrayPasteDlg, CDialogEx)
 	//{{AFX_MSG_MAP(CArrayPasteDlg)
 	ON_BN_CLICKED(IDC_AP_DIM1, OnApDim1)
 	ON_BN_CLICKED(IDC_AP_DIM2, OnApDim2)
@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 
 BOOL CArrayPasteDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
 	CSpinButtonCtrl *spinMoveX = (CSpinButtonCtrl*)GetDlgItem(IDC_AP_MOVEX_SPIN);
 	CSpinButtonCtrl *spinMoveY = (CSpinButtonCtrl*)GetDlgItem(IDC_AP_MOVEY_SPIN);
@@ -222,7 +222,7 @@ void CArrayPasteDlg::OnOK()
 	layout_editor->ArrayPaste(this);
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
-	CDialog::OnOK();
+	CDialogEx::OnOK();
 }
 
 void CArrayPasteDlg::OnDeltaposApCountDim1Spin(NMHDR* pNMHDR, LRESULT* pResult) 

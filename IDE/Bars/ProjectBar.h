@@ -18,13 +18,18 @@ enum ProjectBarImage
 	image_global_variable = 11
 };
 
-class ProjectBar : public CExtControlBar
+#include <afxdockablepane.h> // For CDockablePane
+#include <afxcmn.h>          // For CTreeCtrl, CImageList
+#include <afxext.h>          // For CControlBar (if needed as intermediate)
+
+class ProjectBar : public CDockablePane // Changed base class from CExtControlBar
 {
+	DECLARE_DYNAMIC(ProjectBar) // Added DECLARE_DYNAMIC
 public:
 
 	ProjectBar();
 
-	CXHtmlTree tree;
+	CTreeCtrl tree;     // Changed from CXHtmlTree
 	CImageList images;
 	CFont font;
 

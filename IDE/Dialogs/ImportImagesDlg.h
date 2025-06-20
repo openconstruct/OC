@@ -1,5 +1,6 @@
 #pragma once
 #include "afxwin.h"
+#include <afxdialogex.h> // Required for CDialogEx
 
 // CImportImagesDlg dialog
 class CListBoxMulti : public CListBox
@@ -23,7 +24,7 @@ public:
 
 
 
-class CImportImagesDlg : public CExtNCW<CExtResizableDialog>
+class CImportImagesDlg : public CDialogEx // Changed from CExtNCW<CExtResizableDialog>
 {
 	DECLARE_DYNAMIC(CImportImagesDlg)
 
@@ -43,18 +44,18 @@ public:
 	list<CImageResource> m_Images;
 	bool m_frame;
 	bool m_animation;
-	CExtButton	m_Hotspot1, m_Hotspot2, m_Hotspot3, m_Hotspot4, m_Hotspot5, m_Hotspot6, m_Hotspot7, m_Hotspot8, m_Hotspot9,
+	CButton	m_Hotspot1, m_Hotspot2, m_Hotspot3, m_Hotspot4, m_Hotspot5, m_Hotspot6, m_Hotspot7, m_Hotspot8, m_Hotspot9,
 		m_ColourMask, m_Mirror, m_Flip, m_Rotate1, m_Rotate2, m_Add, m_Remove, m_Up, m_Down, m_Tiles,
 		m_ImportFrame, m_ImportAnimation, m_Cancel, m_Collision;
 
-	CExtEdit	m_HotspotX, m_HotspotY, m_TilesetX, m_TilesetY, m_TilesetW, m_TilesetH;
+	CEdit	m_HotspotX, m_HotspotY, m_TilesetX, m_TilesetY, m_TilesetW, m_TilesetH;
 
-	CExtGroupBox m_Group1, m_Group2, m_Group3;
+	CButton m_Group1, m_Group2, m_Group3; // Groupboxes are CButton or CStatic
 
-	CExtLabel m_Static_X, m_Static_Y, m_Static_TileX, m_Static_TileY, m_Static_TileW, m_Static_TileH;
-	CExtCheckBox m_KeepImage;
+	CStatic m_Static_X, m_Static_Y, m_Static_TileX, m_Static_TileY, m_Static_TileW, m_Static_TileH;
+	CButton m_KeepImage; // Checkboxes are CButton
 
-	CExtLabel m_Preview;
+	CStatic m_Preview;
 public:
 	afx_msg void OnBnClickedHotspot1();
 public:

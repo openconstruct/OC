@@ -14,16 +14,22 @@
 #include "Bars\Animator Bar.h"
 #include "Bars\Object Bar.h"
 #include "Utilities\Ini.h"
-#include "Structure\Ribbon.h"
+#include "Structure\Ribbon.h" // Contains CXRibbonBar, will need to be CMFCRibbonBar
 #include "ChildFrame.h"
 #include "Dialogs\TemplateDialog.h"
-#include "ChildFrame.h"
-#include "UI Elements\MDITabWnd.h"
+// #include "ChildFrame.h" // Duplicate include
+#include "UI Elements\MDITabWnd.h" // Contains CConstructMDITabs
 #include "Utilities\CXAudio2.h"
 #include "Utilities\MP3.h"
 
+#include <afxMDIFrameWndEx.h> // For CMDIFrameWndEx
+#include <afxext.h>           // For CStatusBar, CControlBar
+#include <afxstatusbar.h>     // For CMFCStatusBar
+#include <afxdockablepane.h>  // For CDockablePane
+#include <afxribbonbar.h>     // For CMFCRibbonBar
+
 // Class
-class CMainFrame : public CExtNCW<CMDIFrameWnd>
+class CMainFrame : public CMDIFrameWndEx // Changed from CExtNCW<CMDIFrameWnd>
 {
 protected:
 	DECLARE_DYNAMIC(CMainFrame)
@@ -40,10 +46,10 @@ public:
 	// window placement persistence
 	WINDOWPLACEMENT m_dataFrameWP;
 
-	void _AdjustRTL();
+	// void _AdjustRTL(); // Prof-UIS specific, comment out
 
-	CExtRibbonNode * m_pRibbonNode;
-	void _InitRibbonBar();
+	// CExtRibbonNode * m_pRibbonNode; // Prof-UIS specific, comment out
+	// void _InitRibbonBar(); // Prof-UIS specific, comment out
 
 	// audio
 	CXAudio2 audio;
@@ -84,7 +90,7 @@ public:
 	virtual void ActivateFrame(int nCmdShow = -1);
 	virtual void OnContextHelp();
 	virtual void OnClosing();
-	virtual void RecalcLayout(BOOL bNotify = TRUE);
+	// virtual void RecalcLayout(BOOL bNotify = TRUE); // This is CFrameWnd, CMDIFrameWndEx handles it.
 	//}}AFX_VIRTUAL
 
 	bool m_bAutoSave;
@@ -101,17 +107,17 @@ protected:
 public:  // control bar embedded members
 
 	// Ribbon bar
-	CXRibbonBar			m_Ribbon;
+	CMFCRibbonBar		m_Ribbon; // Changed from CXRibbonBar (assuming CXRibbonBar was CExtRibbonBar wrapper)
 
 	// Menu & status bars
-	CExtStatusControlBar m_wndStatusBar;
+	CMFCStatusBar		m_wndStatusBar; // Changed from CExtStatusControlBar
 
-	// Bars
+	// Bars - Assuming these custom classes will be derived from CDockablePane or similar MFC class
 	ProjectBar		project_bar;
 	PropertiesBar	m_PropertiesBar;
 	CLayerBar		m_LayerBar;
-	CExtControlBar	animator_parent;
-	AnimatorBar		animator;
+	CDockablePane	animator_parent; // Changed from CExtControlBar
+	AnimatorBar		animator;        // Assuming this is a CWnd derived class placed on animator_parent
 
 	// Delay loading
 	CString			m_Load;
@@ -177,97 +183,10 @@ public:
 	afx_msg void OnWebUpdate();
 	afx_msg BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnUpdateControlBarMenu(CCmdUI* pCmdUI);
-	virtual LRESULT OnConstructPopupMenuCB(WPARAM wParam, LPARAM lParam);
+	// virtual LRESULT OnConstructPopupMenuCB(WPARAM wParam, LPARAM lParam); // Prof-UIS specific message
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
 
-
-
-class CColorizedThemeOffice2003 : public CExtPaintManagerOffice2003
-{
-public:
-	DECLARE_SERIAL( CColorizedThemeOffice2003 );
-
-	void SetThemeColors(
-		COLORREF clrFillHint,
-		COLORREF clrAccentHint
-		)
-	{
-		if(		m_clrFillHint == clrFillHint
-			&&	m_clrAccentHint == clrAccentHint
-			)
-			return;
-
-		m_clrFillHint = clrFillHint;
-		m_clrAccentHint = clrAccentHint;
-		InitTranslatedColors();
-		InitHelperBrushes();
-
-		CMainFrame* pMainFrame = (STATIC_DOWNCAST(CMainFrame,AfxGetMainWnd()));
-		ASSERT( pMainFrame != NULL );
-		ASSERT_VALID( pMainFrame );
-		pMainFrame->RedrawWindow(
-			NULL,
-			NULL,
-			RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE
-			| RDW_FRAME | RDW_ALLCHILDREN
-			);
-		CExtControlBar::stat_RedrawFloatingFrames( pMainFrame );
-		CExtControlBar::stat_RecalcBarMetrics( pMainFrame );
-	}
-
-	COLORREF m_clrFillHint;
-	COLORREF m_clrAccentHint;
-
-	CColorizedThemeOffice2003()
-		: m_clrFillHint( RGB(196,196,196) )
-		, m_clrAccentHint( RGB(160, 180, 225) )
-	{
-	}
-
-protected:
-	virtual bool OnQueryThemeColors(
-		COLORREF *pclrFillHint,
-		COLORREF *pclrAccentHint = NULL
-		)
-	{
-		if( pclrFillHint != NULL )
-			*pclrFillHint = m_clrFillHint;
-		if( pclrAccentHint != NULL )
-			*pclrAccentHint = m_clrAccentHint;
-		return true;
-	}
-
-	virtual bool OnQueryUseThemeColors() const
-	{
-		return true;
-	}
-
-	virtual e_system_theme_t OnQuerySystemTheme() const
-	{
-		return ThemeUnknown;
-	}
-
-	virtual bool OnStateSerialize(
-		CArchive & ar,
-		bool bEnableThrowExceptions = false
-		)
-	{
-		CExtPaintManagerOffice2003::OnStateSerialize( ar, bEnableThrowExceptions );
-		if( ar.IsStoring() )
-		{
-			ar << DWORD(m_clrFillHint);
-			ar << DWORD(m_clrAccentHint);
-		}
-		else
-		{
-			DWORD dwTmp;
-			ar >> dwTmp;
-			m_clrFillHint = COLORREF(dwTmp);
-			ar >> dwTmp;
-			m_clrAccentHint = COLORREF(dwTmp);
-		}
-		return true;
-	}
-};
+// Prof-UIS Theme class CColorizedThemeOffice2003 removed.
+// MFC handles themes via Visual Managers (eg. CMFCVisualManagerOffice2007)

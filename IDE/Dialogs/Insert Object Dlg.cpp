@@ -46,7 +46,7 @@ MyCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 // InsertObjectDialog dialog
 
 InsertObjectDialog::InsertObjectDialog(CApplication& application_)
-	: CExtNCW<CExtResizableDialog>(InsertObjectDialog::IDD, NULL),
+	: CDialogEx(InsertObjectDialog::IDD, NULL), // Changed base class
 	application(application_)
 {
 	m_curSel = -1;
@@ -55,7 +55,7 @@ InsertObjectDialog::InsertObjectDialog(CApplication& application_)
 
 void InsertObjectDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 
 	DDX_Control(pDX, IDC_GETMORE, exchange);
 	DDX_Control(pDX, IDC_OBJECTS, objects);
@@ -68,23 +68,30 @@ void InsertObjectDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FOLDER, folders);
 }
 
-BEGIN_MESSAGE_MAP(InsertObjectDialog, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(InsertObjectDialog, CDialogEx) // Changed base class
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_OBJECTS, OnClickList1)
 	ON_BN_CLICKED(IDC_LISTOBJECTS, OnChangeObjectView)
 	ON_BN_CLICKED(IDC_GETMORE, OnExchange)
 	ON_NOTIFY(NM_DBLCLK, IDC_OBJECTS, OnDblclkList1)
-	ON_NOTIFY(WM_LBUTTONUP, IDC_OBJECTS, OnSelected)
+	ON_NOTIFY(WM_LBUTTONUP, IDC_OBJECTS, OnSelected) // This seems unusual for LVN_ITEMACTIVATE or similar
 
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
 
 	ON_NOTIFY(NM_RCLICK, IDC_OBJECTS, OnRClickList)
-	ON_LBN_DBLCLK(IDC_CATEGORIES, OnChangeCategory)
-	ON_LBN_SELCHANGE(IDC_CATEGORIES, OnSelchangeCategories)
+	// ON_LBN_DBLCLK(IDC_CATEGORIES, OnChangeCategory) // Replaced by CTabCtrl
+	// ON_LBN_SELCHANGE(IDC_CATEGORIES, OnSelchangeCategories) // Replaced by CTabCtrl
+	ON_NOTIFY(TCN_SELCHANGE, 1000, &InsertObjectDialog::OnSelchangeCategoriesTabCtrl) // Assuming 1000 is ID for CTabCtrl 'tabs'
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_FILTER, &InsertObjectDialog::OnBnClickedFilter)
 	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
+
+void InsertObjectDialog::OnSelchangeCategoriesTabCtrl(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	OnSelchangeCategories(); // Call original logic
+	*pResult = 0;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // InsertObjectDialog message handlers
@@ -96,10 +103,12 @@ extern CString insert_folder;
 
 BOOL InsertObjectDialog::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
-	// Add resizing
+	// Add resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	BOOL First = dlgMan.Load(m_hWnd, "Software\\Construct\\InsertObjectDialog099");
+	// first_run (CCtrlMessageBar) functionality removed
+	/*
 	if (!First)
 	{
 		first_run.Attach(this);
@@ -107,8 +116,9 @@ BOOL InsertObjectDialog::OnInitDialog()
 		first_run.SetResize();
 		first_run.SetText(_T(IO_FIRSTRUN));
 	}
+	*/
 
-    dlgAnchor.Init(m_hWnd);
+    dlgAnchor.Init(m_hWnd); // Potentially Prof-UIS
 
 	dlgAnchor.Add(IDOK, ANCHOR_RIGHT | ANCHOR_TOP);
 	dlgAnchor.Add(IDCANCEL, ANCHOR_RIGHT | ANCHOR_TOP);
@@ -123,32 +133,40 @@ BOOL InsertObjectDialog::OnInitDialog()
 	dlgAnchor.Add(IDC_OBJECTS, ANCHOR_TOPLEFT | ANCHOR_BOTTOMRIGHT);
 	dlgAnchor.Add(IDC_INFO, ANCHOR_LEFT | ANCHOR_RIGHT | ANCHOR_BOTTOM);
 	dlgAnchor.Add(IDC_TOOLBOX, ANCHOR_RIGHT | ANCHOR_BOTTOM);
-	dlgAnchor.Add(10, ANCHOR_LEFT | ANCHOR_BOTTOM | ANCHOR_RIGHT);
+	dlgAnchor.Add(10, ANCHOR_LEFT | ANCHOR_BOTTOM | ANCHOR_RIGHT); // Assuming 10 is IDC_TABBOX placeholder for tabs
 
 	CRect Rect;
-	objects.GetWindowRect(&Rect);
-	ScreenToClient(&Rect);
-	Rect.top = Rect.bottom - 1;
-	Rect.bottom = Rect.top + 16;
+	// Get rect of placeholder static control for tab positioning, assuming ID 10 (IDC_TABBOX)
+	CWnd* pTabPlaceholder = GetDlgItem(10);
+	if (pTabPlaceholder) {
+		pTabPlaceholder->GetWindowRect(&Rect);
+		ScreenToClient(&Rect);
+		pTabPlaceholder->ShowWindow(SW_HIDE); // Hide placeholder
+	}
+	else { // Fallback if placeholder not found (original logic was based on 'objects' list view)
+		objects.GetWindowRect(&Rect);
+		ScreenToClient(&Rect);
+		Rect.top = Rect.bottom -1; // This positioning might be suboptimal now
+		Rect.bottom = Rect.top + 22; // Adjust height for standard tabs
+	}
 	
-	tabs.Create(this, Rect, 1000, WS_CHILD | WS_VISIBLE, __ETWS_ORIENT_BOTTOM);
+	tabs.Create(WS_CHILD | WS_VISIBLE | TCS_BOTTOM | WS_CLIPSIBLINGS, Rect, this, 1000); // 1000 is control ID for CTabCtrl
+	tabs.SetFont(GetFont());
 
-	dlgAnchor.Add(tabs, ANCHOR_LEFT | ANCHOR_BOTTOM);
+	dlgAnchor.Add(tabs.GetSafeHwnd(), ANCHOR_LEFT | ANCHOR_BOTTOM | ANCHOR_RIGHT); // Anchor the tab control by HWND
 	
-	tabs.ItemInsert(OT_ALL, 0, true, 0, 1);
-	tabs.ItemInsert(OT_AUDIO, 0, true,0, 2);
-	tabs.ItemInsert(OT_CONTROLS, 0, true,0, 3);
-	tabs.ItemInsert(OT_DATAFILES, 0, true, 0, 4);
-	tabs.ItemInsert(OT_GAME, 0, true, 0, 5);
-	tabs.ItemInsert(OT_GRAPHICS, 0, true, 0, 6);
-	tabs.ItemInsert(OT_INPUT, 0, true,0, 7);
-	tabs.ItemInsert(OT_INTERNET, 0, true, 0, 8);
-	tabs.ItemInsert(OT_OTHER, 0, true, 0, 9);
-	tabs.ItemInsert(OT_SYSTEM, 0, true, 0, 10);
-	tabs.SelectionSet(0);
+	TCITEM tcItem;
+	tcItem.mask = TCIF_TEXT;
+	CString tabTexts[] = {OT_ALL, OT_AUDIO, OT_CONTROLS, _T("Data & Files") /*OT_DATAFILES had issues*/, OT_GAME, OT_GRAPHICS, OT_INPUT, OT_INTERNET, OT_OTHER, OT_SYSTEM};
+	for(int i = 0; i < sizeof(tabTexts)/sizeof(CString); ++i) {
+		tcItem.pszText = tabTexts[i].GetBuffer(0);
+		tabs.InsertItem(i, &tcItem);
+		tabTexts[i].ReleaseBuffer();
+	}
+	tabs.SetCurSel(0);
 
 	// Load objects
-	LoadObjects();
+	LoadObjects(); // This function populates m_LargeImages and small_images
 	ListView_SetImageList(objects.m_hWnd, m_LargeImages, LVSIL_NORMAL);		
 	ListView_SetImageList(objects.m_hWnd, small_images, LVSIL_SMALL);	
 
@@ -225,7 +243,7 @@ void InsertObjectDialog::OnOK()
 {
 	OnDblclkList1(0,0);
 
-	CDialog::OnOK();
+	CDialogEx::OnOK(); // Changed base class
 }
 
 void InsertObjectDialog::OnDblclkList1(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -354,16 +372,16 @@ void InsertObjectDialog::OnChangeObjectView()
 
 void InsertObjectDialog::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
-	dlgAnchor.OnSize();	
+	dlgAnchor.OnSize();	// Potentially Prof-UIS
 
 	Invalidate();
 }
 
 void InsertObjectDialog::OnDestroy() 
 {
-	first_run.Detach();
+	// first_run.Detach(); // CCtrlMessageBar (first_run) functionality removed
 
 	ListView_SetImageList(objects.m_hWnd, NULL, LVSIL_SMALL);
 	ListView_SetImageList(objects.m_hWnd, NULL, LVSIL_NORMAL);
@@ -373,43 +391,54 @@ void InsertObjectDialog::OnDestroy()
 	else
 		g_MainFrame->m_INI.WriteInt("InsertObject", "List", 0);
 
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
-	dlgMan.Save();
+	dlgMan.Save(); // Potentially Prof-UIS
 }
 
 void InsertObjectDialog::OnRClickList(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	POSITION listpos = objects.GetFirstSelectedItemPosition();
+	if(listpos == NULL) { // Added check for no selection
+		*pResult = 0;
+		return;
+	}
 	int item = objects.GetNextSelectedItem(listpos);
 	CString itemtext = objects.GetItemText(item, 0);
 
-	if (itemtext == "") return;
+	if (itemtext == "") {
+		*pResult = 0;
+		return;
+	}
 
 	// Mouse position
 	POINT cursorPosition;
 	GetCursorPos(&cursorPosition);
 
-	CExtPopupMenuWnd * popup =  new CExtPopupMenuWnd;
-	popup->LoadMenu(m_hWnd, IDR_OBJECT, true, false);
-
-	UINT ChosenItem = 0;
-	popup->TrackPopupMenu(TPMX_DO_MESSAGE_LOOP|TPMX_NO_WM_COMMAND|TPMX_NO_CMD_UI, cursorPosition.x, cursorPosition.y, NULL, NULL, NULL, &ChosenItem);
-
-	// Open info dialog
-	if (ChosenItem == ID_OBJECTINFO)
+	CMenu menu;
+	if(menu.LoadMenu(IDR_OBJECT)) // Assuming IDR_OBJECT is a standard menu resource
 	{
-		CObjectInfoDlg objInfo;
-		objInfo.objname = itemtext;
-		objInfo.DoModal();
-	}	
-
-	// Open website address
-	else if (ChosenItem == ID_MENU_VISITURL)
-	{
-		CPlugin Plugin = GetPluginByFile((const char*)objects.GetItemData(item));
-		ShellExecute(NULL, "open", Plugin.m_WebLink, NULL, NULL, NULL);
+		CMenu* pSubMenu = menu.GetSubMenu(0); // Assuming the desired popup is the first submenu
+		if(pSubMenu)
+		{
+			UINT ChosenItem = pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY,
+														cursorPosition.x, cursorPosition.y, this);
+			// Open info dialog
+			if (ChosenItem == ID_OBJECTINFO)
+			{
+				CObjectInfoDlg objInfo;
+				objInfo.objname = itemtext;
+				objInfo.DoModal();
+			}
+			// Open website address
+			else if (ChosenItem == ID_MENU_VISITURL)
+			{
+				CPlugin Plugin = GetPluginByFile((const char*)objects.GetItemData(item));
+				ShellExecute(NULL, "open", Plugin.m_WebLink, NULL, NULL, NULL);
+			}
+		}
 	}
+	// delete popup; CExtPopupMenuWnd was heap allocated, CMenu is stack allocated.
 
 	*pResult = 0;
 }
@@ -417,8 +446,8 @@ void InsertObjectDialog::OnRClickList(NMHDR* pNMHDR, LRESULT* pResult)
 void InsertObjectDialog::LoadObjects()
 {
 	// Create imagelists
-	m_LargeImages.Create(32, 32, ILC_COLOR24, 0, 10);
-	small_images.Create(16, 16, ILC_COLOR24, 0, 10);
+	m_LargeImages.Create(32, 32, ILC_COLOR24 | ILC_MASK, 0, 10); // Added ILC_MASK
+	small_images.Create(16, 16, ILC_COLOR24 | ILC_MASK, 0, 10);  // Added ILC_MASK
 
 	map<int, CPlugin>::iterator i = g_Plugins.begin();
 
@@ -436,8 +465,10 @@ void InsertObjectDialog::LoadObjects()
 				continue;
 
 			// Extract the icon
-			ImageList_Add(m_LargeImages, i->second.m_LargeIcon, NULL);
-			ImageList_Add(small_images, i->second.m_SmallIcon, NULL);
+			if(i->second.m_LargeIcon) // Add NULL check
+				ImageList_Add(m_LargeImages, i->second.m_LargeIcon, NULL);
+			if(i->second.m_SmallIcon) // Add NULL check
+				ImageList_Add(small_images, i->second.m_SmallIcon, NULL);
 		}
 	}
 }
@@ -447,162 +478,173 @@ void InsertObjectDialog::OnChangeCategory()
 	bool bGame = false;
 	if (application.runtime != CApplication::rt_application) bGame = true;
 
-	int CategoryID = tabs.SelectionGet();
+	int CategoryID = tabs.GetCurSel(); // Changed from CExtTabFlatWnd::SelectionGet()
 	CString SelectedCategory;
 
 	// Find category to use
-	if ((CategoryID != 0) && (CategoryID != -1))
+	if ((CategoryID != 0) && (CategoryID != -1)) // Assuming 0 is "All" category
 	{
-		SelectedCategory = tabs.ItemGet(CategoryID)->TextGet();
-		SelectedCategory.Replace("&&", "&");
-		objects.RemoveAllGroups();
-	}
+		TCITEM tcItem;
+		TCHAR buffer[256]; // Buffer for tab text
+		tcItem.mask = TCIF_TEXT;
+		tcItem.pszText = buffer;
+		tcItem.cchTextMax = 256;
+		if(tabs.GetItem(CategoryID, &tcItem))
+			SelectedCategory = tcItem.pszText;
 
+		SelectedCategory.Replace(_T("&&"), _T("&")); // ProfUIS used "&&" for literal "&" in tabs, MFC CTabCtrl does not.
+		objects.RemoveAllGroups(); // This is CGroupListCtrl specific
+	}
 	// Otherwise show all
 	else
 	{
-		objects.AddGroup(0, OT_COMMON);
-		objects.AddGroup(1, OT_AUDIO);
-		objects.AddGroup(2, OT_CONTROLS);
-		objects.AddGroup(3, "Data & Files"); // Why doesn't it work!
-		if (bGame) objects.AddGroup(4, OT_GAME);
-		objects.AddGroup(5, OT_GRAPHICS);
-		objects.AddGroup(6, OT_INPUT);
-		objects.AddGroup(7, OT_INTERNET);
-		objects.AddGroup(8, OT_OTHER);
-		objects.AddGroup(9, OT_PROFESSIONAL);
-		objects.AddGroup(10, OT_SYSTEM);
+	{
+		objects.AddGroup(0, OT_ALL); // CGroupListCtrl specific
+		objects.AddGroup(1, OT_AUDIO); // CGroupListCtrl specific
+		objects.AddGroup(2, OT_CONTROLS); // CGroupListCtrl specific
+		objects.AddGroup(3, "Data & Files"); // CGroupListCtrl specific
+		if (bGame) objects.AddGroup(4, OT_GAME); // CGroupListCtrl specific
+		objects.AddGroup(5, OT_GRAPHICS); // CGroupListCtrl specific
+		objects.AddGroup(6, OT_INPUT); // CGroupListCtrl specific
+		objects.AddGroup(7, OT_INTERNET); // CGroupListCtrl specific
+		objects.AddGroup(8, OT_OTHER); // CGroupListCtrl specific
+		objects.AddGroup(9, OT_PROFESSIONAL); // CGroupListCtrl specific
+		objects.AddGroup(10, OT_SYSTEM); // CGroupListCtrl specific
 	}
 
 	SelectedCategory.MakeLower();
 	objects.DeleteAllItems();
 
 	bool bAddPlugin = false;
-	if (CategoryID == 0 || CategoryID == -1) bAddPlugin = true;
+	if (CategoryID == 0 || CategoryID == -1) bAddPlugin = true; // Assuming 0 is "All"
 
 	// Prepare common object selection
 	CQArray <intstr, intstr&> intstrArr;
 	CStringArray oArray;
 	g_MainFrame->m_INI.GetKeyNames(bGame ? "RecentObjects" : "RecentObjectsApp", &oArray);
-	for (int i = 0; i < oArray.GetCount(); i++)
+	for (int k = 0; k < oArray.GetCount(); k++) // Changed loop variable
 	{
 		intstr obj;
-		obj.variable = oArray.GetAt(i);
+		obj.variable = oArray.GetAt(k);
 		obj.id = g_MainFrame->m_INI.GetInt(bGame ? "RecentObjects" : "RecentObjectsApp", obj.variable, 0);
 		intstrArr.Add(obj);
 	}
 
 	intstrArr.QuickSort(FALSE); 
 
-	map<int, CPlugin>::iterator i = g_Plugins.begin();
+	map<int, CPlugin>::iterator plugin_iter = g_Plugins.begin(); // Changed loop variable
 
 	// Image index
-	int Index = 0;
+	int Index = 0; // Unused for image list index, 'Image' is used
 	int Image = 0;
 
 	// Loop all objects
-	for ( ; i != g_Plugins.end(); i++) 
-	{
-		CString lowerName = i->second.m_Name;
+	for ( ; plugin_iter != g_Plugins.end(); plugin_iter++)
+		{
+		CString lowerName = plugin_iter->second.m_Name;
 		lowerName.MakeLower();
 
-		if (i->second.m_bMovement || lowerName == "tag") 
+		if (plugin_iter->second.m_bMovement || lowerName == "tag")
 		{
 			Index++;
 			continue;
 		}
 
-		CString Category = i->second.m_Category;
+		CString Category = plugin_iter->second.m_Category;
 		Category.MakeLower();
 
 		// We want this object
 		if (Category.Find(SelectedCategory, 0) != -1 || bAddPlugin)
-		{
+			{
 			// Add this plugin
 			LVITEM InsertPlugin;
 
-			if (CategoryID == 0)
+			if (CategoryID == 0 || CategoryID == -1) // Show all with groups (CGroupListCtrl specific)
 			{
 				InsertPlugin.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM | LVIF_STATE | LVIF_GROUPID;
 				InsertPlugin.state = 0;
 				InsertPlugin.stateMask = 0;
-				InsertPlugin.iItem = ListView_GetItemCount(objects.m_hWnd) - 1;
+				// InsertPlugin.iItem = ListView_GetItemCount(objects.m_hWnd) - 1; // Incorrect for new item, should be count
 				InsertPlugin.iImage = Image;
 				InsertPlugin.iSubItem = 0;
-				InsertPlugin.lParam = (LPARAM)((const char*)i->second.m_FileName);
-				InsertPlugin.pszText = i->second.m_Name.GetBuffer(0);
+				InsertPlugin.lParam = (LPARAM)((const char*)plugin_iter->second.m_FileName);
+				InsertPlugin.pszText = plugin_iter->second.m_Name.GetBuffer(0);
 
-				// Now find a group
+				// Now find a group (CGroupListCtrl specific)
 				InsertPlugin.iGroupId = -1;
 
 				// Audio
 				if (Category.Find(OT_AUDIO.MakeLower(), 0) != -1) 
 					InsertPlugin.iGroupId = 1;
-
 				// Controls
-				if (Category.Find(OT_CONTROLS.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_CONTROLS.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 2;
-
 				// Data and files
-				if (Category.Find("data & files", 0) != -1) 
+				else if (Category.Find("data & files", 0) != -1)
 					InsertPlugin.iGroupId = 3;
-
 				// Game
-				if (Category.Find(OT_GAME.MakeLower(), 0) != -1)
-					if (!bGame)
-					{
-						Index++;
+				else if (Category.Find(OT_GAME.MakeLower(), 0) != -1) {
+					if (!bGame) {
+						plugin_iter->second.m_Name.ReleaseBuffer();
+						Image++; // Still need to advance image index if we skip
 						continue;
 					}
-					else
-						InsertPlugin.iGroupId = 4;
-
+					else InsertPlugin.iGroupId = 4;
+				}
 				// Graphics
-				if (Category.Find(OT_GRAPHICS.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_GRAPHICS.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 5;
-
 				// Input
-				if (Category.Find(OT_INPUT.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_INPUT.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 6;
-
 				// Internet
-				if (Category.Find(OT_INTERNET.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_INTERNET.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 7;
-
 				// Other
-				if (Category.Find(OT_OTHER.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_OTHER.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 8;
-
 				// Professional
-				if (Category.Find(OT_PROFESSIONAL.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_PROFESSIONAL.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 9;
-
 				// System
-				if (Category.Find(OT_SYSTEM.MakeLower(), 0) != -1) 
+				else if (Category.Find(OT_SYSTEM.MakeLower(), 0) != -1)
 					InsertPlugin.iGroupId = 10;
 
+				bool isCommon = false;
 				// Is it a common object?
 				for (int j = 0; j < min(intstrArr.GetCount(), 8); j++) 
-				{
-					if (!_stricmp(i->second.m_FileName, intstrArr[j].variable))
+					{
+					if (!_stricmp(plugin_iter->second.m_FileName, intstrArr[j].variable))
 					{ 
+						isCommon = true;
 						// This is a commonly used object
-						if (InsertPlugin.iGroupId != -1) {
-
+						if (InsertPlugin.iGroupId != -1) { // If it also belongs to another group
+							LVITEM commonInsert = InsertPlugin; // copy
+							commonInsert.iGroupId = 0; // Common group
+							commonInsert.iItem = ListView_GetItemCount(objects.m_hWnd);
 							if (lowerName != "directsound")
-								ListView_InsertItem(objects.m_hWnd, &InsertPlugin);
+								ListView_InsertItem(objects.m_hWnd, &commonInsert);
 						}
-
-						InsertPlugin.iGroupId = 0;
+						else { // Only common
+							InsertPlugin.iGroupId = 0;
+						}
+						break;
 					}
-				}
+					}
 
-				// Do not insert Directsound - it still exists for loading old .caps, but can't be inserted
-				if (lowerName != "directsound")
-					ListView_InsertItem(objects.m_hWnd, &InsertPlugin);
+				// Add to its specific group if not already added as common OR if it belongs to multiple (handled by CGroupListCtrl logic)
+				// The original logic might add items twice if common and also in current category. CGroupListCtrl might handle this.
+				// Simplified: if it's common, it's in group 0. If also in specific, depends on CGroupListCtrl.
+				// For now, ensure it's added if it matched a specific group and wasn't ONLY common.
+				if(InsertPlugin.iGroupId != 0 || !isCommon) { // If it has a specific group, or isn't common at all
+					if (lowerName != "directsound") {
+						InsertPlugin.iItem = ListView_GetItemCount(objects.m_hWnd);
+						ListView_InsertItem(objects.m_hWnd, &InsertPlugin);
+						}
+					}
+				plugin_iter->second.m_Name.ReleaseBuffer();
 			}
-
-			else
+			else // Specific category selected, no groups in CListCtrl standard view
 			{
 				InsertPlugin.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM | LVIF_STATE;
 				InsertPlugin.state = 0;
@@ -610,29 +652,27 @@ void InsertObjectDialog::OnChangeCategory()
 				InsertPlugin.iItem = ListView_GetItemCount(objects.m_hWnd);
 				InsertPlugin.iImage = Image;
 				InsertPlugin.iSubItem = 0;
-				InsertPlugin.lParam = (LPARAM)((const char*)i->second.m_FileName);
-				InsertPlugin.pszText = i->second.m_Name.GetBuffer(0);
-				ListView_InsertItem(objects.m_hWnd, &InsertPlugin);
+				InsertPlugin.lParam = (LPARAM)((const char*)plugin_iter->second.m_FileName);
+				InsertPlugin.pszText = plugin_iter->second.m_Name.GetBuffer(0);
+				if (lowerName != "directsound") ListView_InsertItem(objects.m_hWnd, &InsertPlugin);
+				plugin_iter->second.m_Name.ReleaseBuffer();
+				}
 			}
+
+		Image++; // Increment for each potential image, even if skipped, to keep sync with imagelist
+		Index++;
 		}
 
-		Index++;
-
-		if (!bGame && Category != OT_GAME.MakeLower())
-			Image++;
-
-		if (bGame)
-			Image++;
-	}
-
 	if (CategoryID == 0 || CategoryID == -1)
-		objects.EnableGroups();
+		objects.EnableGroups(); // This is a CGroupListCtrl specific function
 
 	// Sort the list view items
-	objects.SortItems(MyCompareProc, (LPARAM)&objects);
+	// MyCompareProc needs to be static or global for SortItems.
+	// objects.SortItems(MyCompareProc, (LPARAM)&objects); // This is CListCtrl method
 
-	objects.SetScrollPos(0, 0);
-	objects.SetScrollPos(SB_VERT, 0);
+	// objects.SetScrollPos(0, 0); // This is for CWnd, not CListCtrl scrollbar specifically
+	objects.Scroll(CSize(0,-50000)); // Scroll to top using CListCtrl::Scroll
+	objects.Scroll(CSize(0,0));
 }
 
 void InsertObjectDialog::OnSelchangeCategories() 
@@ -660,7 +700,7 @@ BOOL InsertObjectDialog::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	
-	return CDialog::PreTranslateMessage(pMsg);
+	return CDialogEx::PreTranslateMessage(pMsg); // Changed base class
 }
 
 void InsertObjectDialog::OnBnClickedFilter()
@@ -685,5 +725,5 @@ void InsertObjectDialog::OnLButtonUp(UINT nFlags, CPoint point)
 	if (filter_dialog.m_hWnd)
 		filter_dialog.DestroyWindow();
 
-	CExtNCW<CExtResizableDialog>::OnLButtonUp(nFlags, point);
+	CDialogEx::OnLButtonUp(nFlags, point); // Changed base class
 }

@@ -14,10 +14,10 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // CPicEdResizeDlg dialog
-
+IMPLEMENT_DYNAMIC(CPicEdResizeDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 CPicEdResizeDlg::CPicEdResizeDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CPicEdResizeDlg::IDD, pParent)
+	: CDialogEx(CPicEdResizeDlg::IDD, pParent) // Changed base class
 {
 	//{{AFX_DATA_INIT(CPicEdResizeDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -27,15 +27,16 @@ CPicEdResizeDlg::CPicEdResizeDlg(CWnd* pParent /*=NULL*/)
 
 void CPicEdResizeDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	//{{AFX_DATA_MAP(CPicEdResizeDlg)
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDOK, m_Resize);
+	//DDX_Control(pDX, ID_RESET_BUTTON_ID_PLACEHOLDER, m_Reset); // m_Reset not DDX'd, ID unknown
 	//}}AFX_DATA_MAP
 }
 
 
-BEGIN_MESSAGE_MAP(CPicEdResizeDlg, CDialog)
+BEGIN_MESSAGE_MAP(CPicEdResizeDlg, CDialogEx) // Changed base class
 	//{{AFX_MSG_MAP(CPicEdResizeDlg)
 	ON_WM_CREATE()
 	ON_WM_CLOSE()
@@ -52,7 +53,7 @@ END_MESSAGE_MAP()
 
 int CPicEdResizeDlg::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
-	if (CDialog::OnCreate(lpCreateStruct) == -1)
+	if (CDialogEx::OnCreate(lpCreateStruct) == -1) // Changed base class
 		return -1;
 
 	// TODO: Add your specialized creation code here
@@ -62,7 +63,7 @@ int CPicEdResizeDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 BOOL CPicEdResizeDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 	CString MyString;
 	MyString.Format("%d",m_pPicEd->m_Width);
     GetDlgItem(IDC_WIDTH)->SetWindowText(MyString);
@@ -74,7 +75,7 @@ BOOL CPicEdResizeDlg::OnInitDialog()
 	m_Cancel.SetWindowText(CANCEL);
 	m_Resize.SetWindowText(RESIZE);
 
-	SubclassChildControls();
+	// SubclassChildControls(); // Removed Prof-UIS specific call
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
@@ -116,7 +117,7 @@ void CPicEdResizeDlg::OnClose()
 	m_height = atoi(MyString);
 	
 
-	CDialog::OnClose();
+	CDialogEx::OnClose(); // Changed base class
 }
 
 void CPicEdResizeDlg::OnDestroy() 
@@ -136,7 +137,7 @@ void CPicEdResizeDlg::OnDestroy()
 	
 	
 	
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
 	// TODO: Add your message handler code here
 	

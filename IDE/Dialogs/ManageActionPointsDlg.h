@@ -2,10 +2,11 @@
 
 #include "..\Utilities\Palette\ToolSettings.h"
 #include "afxwin.h"
+#include <afxdialogex.h> // Required for CDialogEx
 
 // CManageActionPointsDlg dialog
 
-class CManageActionPointsDlg : public CExtNCW<CExtResizableDialog>
+class CManageActionPointsDlg : public CDialogEx // Changed base class
 {
 
 
@@ -17,7 +18,7 @@ public:
 	CManageActionPointsDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CManageActionPointsDlg();
 
-	CExtButton m_Add, m_Remove, m_OK, m_Cancel;
+	CButton m_Add, m_Remove, m_OK, m_Cancel; // Changed from CExtButton
 
 // Dialog Data
 	enum { IDD = IDD_MANAGE_ACTION_POINTS };

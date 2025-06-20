@@ -24,7 +24,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CErrorDlg dialog
 
-CErrorDlg::CErrorDlg(CWnd* pParent /*=NULL*/) : CExtWS<CDialog>(CErrorDlg::IDD, pParent)
+CErrorDlg::CErrorDlg(CWnd* pParent /*=NULL*/) : CDialogEx(CErrorDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CErrorDlg)
 	//}}AFX_DATA_INIT
@@ -32,7 +32,7 @@ CErrorDlg::CErrorDlg(CWnd* pParent /*=NULL*/) : CExtWS<CDialog>(CErrorDlg::IDD, 
 
 void CErrorDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CErrorDlg)
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDC_MESSAGE, m_Message);
@@ -40,7 +40,7 @@ void CErrorDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CErrorDlg, CDialog)
+BEGIN_MESSAGE_MAP(CErrorDlg, CDialogEx)
 	//{{AFX_MSG_MAP(CErrorDlg)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 
 BOOL CErrorDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 	
 	m_Message.SetWindowText(errorMessage);
 
@@ -94,7 +94,7 @@ BOOL CErrorDlg::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	
-	return CDialog::PreTranslateMessage(pMsg);
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
 INT_PTR CErrorDlg::UpdateMessage(LPCSTR title, LPCSTR message)

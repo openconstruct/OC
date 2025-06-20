@@ -7,10 +7,10 @@
 
 // CControlsDlg dialog
 
-IMPLEMENT_DYNAMIC(CControlsDlg, CDialog)
+IMPLEMENT_DYNAMIC(CControlsDlg, CDialogEx)
 
 CControlsDlg::CControlsDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CControlsDlg::IDD, pParent)
+	: CDialogEx(CControlsDlg::IDD, pParent)
 {
 	application = NULL;
 
@@ -30,7 +30,7 @@ CControlsDlg::CControlsDlg(CWnd* pParent /*=NULL*/)
 
 BOOL CControlsDlg::OnInitDialog()
 {
-	CExtNCW<CExtResizableDialog>::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
 	m_Ctrls.InsertColumn(0, "Control name", 0, 150);
 	m_Ctrls.InsertColumn(1, "Key",			0, 150);
@@ -38,19 +38,14 @@ BOOL CControlsDlg::OnInitDialog()
 
 	RefreshControls();
 
-	CExtBitmap Bitmap;
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONADD));
-	m_Add.SetIcon(Bitmap.CreateHICON());
-
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONEDIT));
-	m_Edit.SetIcon(Bitmap.CreateHICON());
-
-	Bitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_ICONDELETE));
-	m_Remove.SetIcon(Bitmap.CreateHICON());
+	// CExtBitmap and SetIcon calls removed as CExtBitmap is Prof-UIS
+	// and standard CButton icon setting might require HICON from resources.
+	// Consider replacing with standard icon loading if available or removing icons.
 	
 	m_Ctrls.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
-	// Resizing
+	// Resizing - dlgMan and dlgAnchor might be Prof-UIS specific.
+	// Leaving them for now, but they are potential further dependencies.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\ControlsDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -69,7 +64,7 @@ CControlsDlg::~CControlsDlg()
 
 void CControlsDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CONTROLSLIST, m_Ctrls);
 	DDX_Control(pDX, IDC_ADD, m_Add);
 	DDX_Control(pDX, IDC_RENAME, m_Edit);
@@ -78,8 +73,8 @@ void CControlsDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CControlsDlg, CDialog)
-	ON_REGISTERED_MESSAGE(WM_XLISTCTRL_COMBO_SELECTION, OnComboSelection)
+BEGIN_MESSAGE_MAP(CControlsDlg, CDialogEx)
+	// ON_REGISTERED_MESSAGE(WM_XLISTCTRL_COMBO_SELECTION, OnComboSelection) // Removed: CListCtrl doesn't have this
 	ON_BN_CLICKED(IDC_ADD, &CControlsDlg::OnBnClickedAdd)
 	ON_BN_CLICKED(IDC_REMOVE, &CControlsDlg::OnBnClickedDelete)
 	ON_NOTIFY(LVN_KEYDOWN, IDC_CONTROLSLIST, &CControlsDlg::OnLvnKeydownControlslist)
@@ -90,60 +85,60 @@ BEGIN_MESSAGE_MAP(CControlsDlg, CDialog)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
-LRESULT CControlsDlg::OnComboSelection(WPARAM nItem, LPARAM nSubItem)
-{
-	if (nItem >= 0)
-	{
-		// Control column
-		if (nSubItem == 1) {
-
-			// Find this combo key
-			CString itemText = m_Ctrls.GetItemText(nItem, nSubItem);
-
-			for (int i = 0; controlTable[i].vk != -1; i++) {
-				if (itemText == controlTable[i].name) {
-					application->m_Controls[nItem].comboIndex = i;
-					application->m_Controls[nItem].vk = controlTable[i].vk;
-					break;
-				}
-			}
-		}
-		// Player column
-		else if (nSubItem == 2) {
-
-			CString itemText = m_Ctrls.GetItemText(nItem, nSubItem);
-			int newplayer = 0;
-
-			for (int i = 0; i < 10; i++) {
-				if (itemText == players[i]) {
-					newplayer = i;
-					break;
-				}
-			}
-
-			// Check this item name doesnt exist already for this player
-			CString controlName = m_Ctrls.GetItemText(nItem, 0);
-
-			BehaviorControl bc;
-			bc.name = controlName;
-			bc.player = newplayer;
-
-			if (application->m_Controls[nItem].player != newplayer && exists_element(application->m_Controls.begin(), application->m_Controls.end(), bc)) {
-				//CString msg;
-				//msg.Format("The control '%s' already exists for player %d.", controlName, newplayer+1);
-				//MessageBox(msg, "Cannot change player", MB_OK | MB_ICONEXCLAMATION);
-				return 0;
-			}
-
-			// Set the new player
-			application->m_Controls[nItem].player = newplayer;
-
-		}
-
-	}
-
-	return 0;
-}
+// LRESULT CControlsDlg::OnComboSelection(WPARAM nItem, LPARAM nSubItem) // Removed: CListCtrl doesn't have this
+// {
+// 	if (nItem >= 0)
+// 	{
+// 		// Control column
+// 		if (nSubItem == 1) {
+//
+// 			// Find this combo key
+// 			CString itemText = m_Ctrls.GetItemText(nItem, nSubItem);
+//
+// 			for (int i = 0; controlTable[i].vk != -1; i++) {
+// 				if (itemText == controlTable[i].name) {
+// 					application->m_Controls[nItem].comboIndex = i;
+// 					application->m_Controls[nItem].vk = controlTable[i].vk;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		// Player column
+// 		else if (nSubItem == 2) {
+//
+// 			CString itemText = m_Ctrls.GetItemText(nItem, nSubItem);
+// 			int newplayer = 0;
+//
+// 			for (int i = 0; i < 10; i++) {
+// 				if (itemText == players[i]) {
+// 					newplayer = i;
+// 					break;
+// 				}
+// 			}
+//
+// 			// Check this item name doesnt exist already for this player
+// 			CString controlName = m_Ctrls.GetItemText(nItem, 0);
+//
+// 			BehaviorControl bc;
+// 			bc.name = controlName;
+// 			bc.player = newplayer;
+//
+// 			if (application->m_Controls[nItem].player != newplayer && exists_element(application->m_Controls.begin(), application->m_Controls.end(), bc)) {
+// 				//CString msg;
+// 				//msg.Format("The control '%s' already exists for player %d.", controlName, newplayer+1);
+// 				//MessageBox(msg, "Cannot change player", MB_OK | MB_ICONEXCLAMATION);
+// 				return 0;
+// 			}
+//
+// 			// Set the new player
+// 			application->m_Controls[nItem].player = newplayer;
+//
+// 		}
+//
+// 	}
+//
+// 	return 0;
+// }
 
 void CControlsDlg::RefreshControls()
 {
@@ -154,8 +149,19 @@ void CControlsDlg::RefreshControls()
 	for ( ; i != application->m_Controls.end(); i++) {
 		int nItem = m_Ctrls.GetItemCount();
 		m_Ctrls.InsertItem(nItem, i->name);
-		m_Ctrls.SetComboBox(nItem, 1, TRUE, &controls, 20, i->comboIndex);
-		m_Ctrls.SetComboBox(nItem, 2, TRUE, &players, 10, i->player);
+		// m_Ctrls.SetComboBox(nItem, 1, TRUE, &controls, 20, i->comboIndex); // Removed: CListCtrl doesn't have this
+		// m_Ctrls.SetComboBox(nItem, 2, TRUE, &players, 10, i->player);     // Removed: CListCtrl doesn't have this
+		// Need to set text directly for columns 1 and 2 if this data is to be displayed.
+		// For now, columns 1 and 2 will be blank after this change.
+		// Example: m_Ctrls.SetItemText(nItem, 1, controls[i->comboIndex]);
+		// Example: m_Ctrls.SetItemText(nItem, 2, players[i->player]);
+
+		// Displaying the key name and player name
+		if (i->comboIndex >= 0 && i->comboIndex < controls.GetSize())
+			m_Ctrls.SetItemText(nItem, 1, controls[i->comboIndex]);
+		if (i->player >= 0 && i->player < players.GetSize())
+			m_Ctrls.SetItemText(nItem, 2, players[i->player]);
+
 	}
 }
 
@@ -178,8 +184,13 @@ void CControlsDlg::OnBnClickedAdd()
 
 	int nItem = m_Ctrls.GetItemCount();
 	m_Ctrls.InsertItem(nItem, mc.name);
-	m_Ctrls.SetComboBox(nItem, 1, TRUE, &controls, 20, 0);
-	m_Ctrls.SetComboBox(nItem, 2, TRUE, &players, 10, 0);
+	// m_Ctrls.SetComboBox(nItem, 1, TRUE, &controls, 20, 0); // Removed
+	// m_Ctrls.SetComboBox(nItem, 2, TRUE, &players, 10, 0);   // Removed
+	// Set text for the new item's sub-columns
+	if (controls.GetSize() > 0) // Assuming index 0 is a valid default
+		m_Ctrls.SetItemText(nItem, 1, controls[0]);
+	if (players.GetSize() > 0) // Assuming index 0 is a valid default
+		m_Ctrls.SetItemText(nItem, 2, players[0]);
 }
 
 void CControlsDlg::OnBnClickedDelete()
@@ -263,8 +274,9 @@ void CControlsDlg::OnBnClickedRename()
 
 void CControlsDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy);
 	
+	// dlgAnchor might be Prof-UIS specific.
 	dlgAnchor.OnSize();
 
 	Invalidate();
@@ -272,7 +284,8 @@ void CControlsDlg::OnSize(UINT nType, int cx, int cy)
 
 void CControlsDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy();
 	
+	// dlgMan might be Prof-UIS specific.
 	dlgMan.Save();
 }

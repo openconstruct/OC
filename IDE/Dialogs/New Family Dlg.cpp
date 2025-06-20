@@ -7,10 +7,10 @@
 #include "ManageFamiliesDlg.h"
 
 // CNewFamilyDlg dialog
-IMPLEMENT_DYNAMIC(CNewFamilyDlg, CDialog)
+IMPLEMENT_DYNAMIC(CNewFamilyDlg, CDialogEx) // Changed base class
 
 CNewFamilyDlg::CNewFamilyDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CNewFamilyDlg::IDD, pParent)
+	: CDialogEx(CNewFamilyDlg::IDD, pParent) // Changed base class
 {
 
 }
@@ -25,11 +25,11 @@ void CNewFamilyDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDC_MANAGE, m_Manage);
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 }
 
 
-BEGIN_MESSAGE_MAP(CNewFamilyDlg, CDialog)
+BEGIN_MESSAGE_MAP(CNewFamilyDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, OnOK)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -52,7 +52,7 @@ void CNewFamilyDlg::OnOK()
 
 	small_image.Load(m_Path);
 
-	CDialog::OnOK();
+	CDialogEx::OnOK(); // Changed base class
 }
 
 void CNewFamilyDlg::OnRefresh()
@@ -84,8 +84,8 @@ void CNewFamilyDlg::OnRefresh()
 
 	if (hFind == INVALID_HANDLE_VALUE) 
 	{
-		CErrorDlg error;
-		::ExtMessageBox(m_hWnd, "Families directory missing", "The families directory has been moved.\r\nConstruct cannot initialise your families.", NULL);    
+		// CErrorDlg error; // This local variable is unused
+		MessageBox("The families directory has been moved.\r\nConstruct cannot initialise your families.", "Families directory missing", MB_OK | MB_ICONERROR);    // Replaced ::ExtMessageBox
 		OnCancel();
 	} 
 
@@ -135,20 +135,22 @@ void CNewFamilyDlg::OnRefresh()
 
 void CNewFamilyDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
+	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
 BOOL CNewFamilyDlg::OnInitDialog() 
 {
-	CExtNCW<CExtResizableDialog>::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_List.InsertColumn(0, "Name", 0, 150);
 	OnRefresh();
 
 	m_List.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
+	// dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\NewFamilyDlgs");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -163,8 +165,9 @@ BOOL CNewFamilyDlg::OnInitDialog()
 
 void CNewFamilyDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();	
 }
 

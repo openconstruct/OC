@@ -1,9 +1,19 @@
 #pragma once
 #include "afxwin.h"
 #include "..\resource.h"
-#include "..\..\Utilities\anchor.h"
-#include "..\..\Utilities\dlgman.h"
-#include "Popup dialogs\Snippets Dlg.h"
+#include "..\..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
+#include "..\..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include "Popup dialogs\Snippets Dlg.h" // CSnippetsDlg - Custom, assumed independent or separately refactored
+#include <afxdialogex.h> // Required for CDialogEx
+#include <vector>        // For std::vector
+#include <map>           // For std::map
+#include <list>          // For std::list
+// Using directives for STL containers if not already global or in stdafx.h
+// For example:
+using std::vector;
+using std::map;
+using std::list;
+
 
 class PyInfoClass;
 
@@ -95,7 +105,7 @@ public:
 };
 
 
-class CScriptDlg : public CExtNCW<CExtResizableDialog>
+class CScriptDlg : public CDialogEx // Changed base class
 {
 	DECLARE_DYNAMIC(CScriptDlg)
 
@@ -108,12 +118,12 @@ public:
 	CApplication* pApp;
 
 	// Snippets
-	CSnippetsDlg m_Snippets;
+	CSnippetsDlg m_Snippets; // Custom dialog, assumed independent
 
-	CDlgAnchor dlgAnchor;
-	CDlgMan dlgMan;
+	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
 
-	CExtToolControlBar m_wndToolBar;
+	CToolBar m_wndToolBar; // Changed from CExtToolControlBar
 
 // Dialog Data
 	enum { IDD = IDD_SCRIPT };
@@ -135,16 +145,16 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
-	CExtButton		m_OK;
-	CExtButton		m_Cancel;
-	CScintillaWnd	m_Script;
-	CScintillaWnd	m_Help;
-	CEdit			m_HelpLine;
+	CButton		m_OK;     // Changed from CExtButton
+	CButton		m_Cancel; // Changed from CExtButton
+	CScintillaWnd	m_Script; // Custom Scintilla wrapper, assumed not Prof-UIS derived
+	CScintillaWnd	m_Help;   // Custom Scintilla wrapper, assumed not Prof-UIS derived
+	CEdit			m_HelpLine; // Already standard
 
-	CExtEdit		m_VariableName;
+	CEdit		m_VariableName; // Changed from CExtEdit
 
-	CCheckListBox m_Classes;
-	CFunctionListBox m_Functions;
+	CCheckListBox m_Classes;    // Already standard (MFC CCheckListBox)
+	CFunctionListBox m_Functions; // Custom CListBox, base is standard
 
 	HMODULE m_hDll;
 

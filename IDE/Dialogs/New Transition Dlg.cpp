@@ -6,10 +6,10 @@
 #include "NewTransitionDlg.h"
 
 // CNewTransitionDlg dialog
-IMPLEMENT_DYNAMIC(CNewTransitionDlg, CDialog)
+IMPLEMENT_DYNAMIC(CNewTransitionDlg, CDialogEx) // Changed base class
 
 CNewTransitionDlg::CNewTransitionDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CNewTransitionDlg::IDD, pParent)
+	: CDialogEx(CNewTransitionDlg::IDD, pParent) // Changed base class
 {
 }
 
@@ -19,13 +19,13 @@ CNewTransitionDlg::~CNewTransitionDlg()
 
 void CNewTransitionDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDC_LIST1, m_Transitions);
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 }
 
-BEGIN_MESSAGE_MAP(CNewTransitionDlg, CDialog)
+BEGIN_MESSAGE_MAP(CNewTransitionDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, OnOK)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -43,25 +43,26 @@ void CNewTransitionDlg::OnOK()
 	}
 	else {
 		m_Transition.m_Name = m_Transitions.GetItemText(sel, 0);
-		if (m_Transition.m_Name == "") return CDialog::OnCancel();
+		if (m_Transition.m_Name == "") { CDialogEx::OnCancel(); return; } // Changed base class
 
 		m_Transition.m_FileName = m_Transition.m_Name + ".fx";
 		
-		CDialog::OnOK();
+		CDialogEx::OnOK(); // Changed base class
 	}
 }
 
 void CNewTransitionDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
+	// dlgMan is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Save();
 }
 
 // CNewTransitionDlg message handlers
 BOOL CNewTransitionDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_Transitions.InsertColumn(0, "Name", 0, 110, NULL);
 	m_Transitions.InsertColumn(1, "Author", 0, 100, NULL);
@@ -92,7 +93,7 @@ BOOL CNewTransitionDlg::OnInitDialog()
 
 	if (hFind == INVALID_HANDLE_VALUE) 
 	{
-		CErrorDlg error;
+		CErrorDlg error; // This CErrorDlg is a custom class, not Prof-UIS, so it's fine.
 		error.Error("Transitions directory missing", "The transitions directory has been moved.\nConstruct cannot initialise your transitions.");     
 		EndDialog(0);
 	} 
@@ -136,7 +137,7 @@ BOOL CNewTransitionDlg::OnInitDialog()
 		}
 	}	
 
-	// Resizing
+	// Resizing - dlgMan and dlgAnchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dlgMan.Load(this->m_hWnd, "Software\\Construct\\NewTransitionDlg");
     dlgAnchor.Init(this->m_hWnd);
 
@@ -150,8 +151,9 @@ BOOL CNewTransitionDlg::OnInitDialog()
 
 void CNewTransitionDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dlgAnchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dlgAnchor.OnSize();
 
 	Invalidate();

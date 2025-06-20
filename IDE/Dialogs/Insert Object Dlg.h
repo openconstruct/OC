@@ -2,37 +2,47 @@
 
 #include "..\Utilities\anchor.h"
 #include "..\Utilities\dlgman.h"
-#include "..\UI Elements\grouplistctrl.h"
-#include "Popup dialogs\ACE Filter Dlg.h"
+#include "..\UI Elements\grouplistctrl.h" // CGroupListCtrl - Custom, assumed to be CListCtrl compatible or separately refactored
+#include "Popup dialogs\ACE Filter Dlg.h"  // CACEFilterDlg - Custom dialog, assumed independent or separately refactored
+#include <afxdialogex.h> // Required for CDialogEx
+#include <afxcmn.h> // Required for CTabCtrl
 
 /////////////////////////////////////////////////////////////////////////////
 // CInsertObject dialog
 
-class InsertObjectDialog : public CExtNCW<CExtResizableDialog>
+class InsertObjectDialog : public CDialogEx // Changed from CExtNCW<CExtResizableDialog>
 {
-	friend class CCategoryTab;
+	friend class CCategoryTab; // This class is not defined here, might be an issue if it relies on InsertObjectDialog being CExtNCW
 
 public:
 	InsertObjectDialog(CApplication&);  
 
 	enum { IDD = IDD_INSERTOBJECTS };
 
-	CExtButton ok, cancel, exchange, list_objects, filter;
-	CGroupListCtrl objects;
-	CExtLabel tab_rect;
-	CExtEdit info;
-	CEdit name;
-	CComboBox folders;
+	CButton ok, cancel, exchange, list_objects, filter; // Changed from CExtButton
+	CGroupListCtrl objects;  // Assuming CGroupListCtrl is CListCtrl compatible or refactored separately
+	CStatic tab_rect;        // Changed from CExtLabel
+	CEdit info;              // Changed from CExtEdit
+	CEdit name;              // Already CEdit (standard)
+	CComboBox folders;         // Already CComboBox (standard)
 
 	bool onclicklisttimeractivated;
 
-	CCtrlMessageBar	first_run;
+	// CCtrlMessageBar	first_run; // Prof-UIS: Functionality will be removed
 
-	class CObjectTab : public CExtTabFlatWnd
+	class CObjectTab : public CTabCtrl // Changed from CExtTabFlatWnd
 	{
+		// virtual bool OnTabWndSelectionChange(LONG nOldItemIndex, LONG nNewItemIndex, bool bPreSelectionTest)
+		// This exact signature might not match CTabCtrl notifications (usually TCN_SELCHANGE/TCN_SELCHANGING via WM_NOTIFY)
+		// This will need adjustment in how it's called or handled.
+		// For now, keeping the body to illustrate intent, but it will likely need rework.
+		// It's better to handle TCN_SELCHANGE in the parent dialog's message map for the CTabCtrl ID.
+		// This override will likely not be called as is.
+		/*
 		virtual bool OnTabWndSelectionChange(LONG nOldItemIndex, LONG nNewItemIndex, bool bPreSelectionTest)
 		{
-			bool bRetVal = CExtTabFlatWnd::OnTabWndSelectionChange(nOldItemIndex, nNewItemIndex, bPreSelectionTest);
+			// This logic needs to move to the parent dialog's TCN_SELCHANGE handler for the tab control
+			bool bRetVal = true; // Assuming selection change is allowed by default
 			if( bRetVal )
 			{  
 				LRESULT End = 0;
@@ -40,9 +50,10 @@ public:
 			}
 			return bRetVal;
 		}
+		*/
 	}  tabs;
 
-	// Resizable
+	// Resizable - dlgAnchor and dlgMan are potentially Prof-UIS or other 3rd party. Left for now.
 	CDlgAnchor dlgAnchor;
 	CDlgMan dlgMan;   
 

@@ -9,20 +9,21 @@ extern PropertiesBar* g_PropertyBar;
 
 /////////////////////////////////////////////////////////////////////////////
 // CLayerDlg dialog
+IMPLEMENT_DYNAMIC(CLayerDlg, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 CLayerDlg::CLayerDlg(CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(IDD_BARDIALOG, pParent)
+	: CDialogEx(IDD_BARDIALOG, pParent) // Changed base class
 {
 	m_layerListBox.layout_editor = NULL;
 }
 
 void CLayerDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CExtResizableDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_MAIN_MENUBAR, m_Toolbar);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
+	// DDX_Control(pDX, IDC_MAIN_MENUBAR, m_Toolbar); // CToolBar not typically DDX'd by ID
 }
 
-BEGIN_MESSAGE_MAP(CLayerDlg, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(CLayerDlg, CDialogEx) // Changed base class
 	ON_WM_SIZE()
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -135,24 +136,27 @@ void CLayerDlg::RefreshLayers()
 
 void CLayerDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CExtResizableDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	if (IsWindow(m_layerListBox.m_hWnd)) 
 	{
-		CRect Toolbar, List;
-		m_Toolbar.GetWindowRect(Toolbar);
+		CRect ToolbarRect, ListRect; // Renamed to avoid conflict if Toolbar is also a class member name
+		if (m_Toolbar.GetSafeHwnd()) // Ensure toolbar is valid before getting rect
+			m_Toolbar.GetWindowRect(&ToolbarRect);
+		else
+			ToolbarRect.SetRectEmpty();
 
-		List.top = Toolbar.Height();
-		List.left = 0;
-		List.right = cx;
-		List.bottom = cy;
+		ListRect.top = ToolbarRect.Height();
+		ListRect.left = 0;
+		ListRect.right = cx;
+		ListRect.bottom = cy;
 
-		m_layerListBox.MoveWindow(List);
+		m_layerListBox.MoveWindow(ListRect);
 	}
 }
 
 int CLayerDlg::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
-	if (CExtResizableDialog::OnCreate(lpCreateStruct) == -1)
+	if (CDialogEx::OnCreate(lpCreateStruct) == -1) // Changed base class
 		return -1;
 
 	return 0;
@@ -320,15 +324,15 @@ void CLayerDlg::OnLayerDel()
 
 	if (layer) 
 	{
-		CExtMsgBox msg(NULL, CONF_DELETE, CONFIRMATION, __EXT_MB_YESNO | __EXT_MB_ICONINFORMATION | __EXT_MB_DO_NOT_ASK_AGAIN, 0, "DeleteLayer", __EXT_MB_EX_CHECK_BOX_IS_NOT_CHECKED_INTIALLY);
-
-		int result = msg.DoModal();
+		// CExtMsgBox msg(NULL, CONF_DELETE, CONFIRMATION, __EXT_MB_YESNO | __EXT_MB_ICONINFORMATION | __EXT_MB_DO_NOT_ASK_AGAIN, 0, "DeleteLayer", __EXT_MB_EX_CHECK_BOX_IS_NOT_CHECKED_INTIALLY);
+		// int result = msg.DoModal();
+		int result = AfxMessageBox(CONF_DELETE, MB_YESNO | MB_ICONQUESTION); // Replaced CExtMsgBox
 
 		if (result == IDYES)
 			do_delete = true;
 
-		else
-			msg.ResetMsgBox();
+		// else // ResetMsgBox not applicable for AfxMessageBox
+		// 	msg.ResetMsgBox();
 	}
 
 	if (do_delete)
@@ -373,20 +377,40 @@ void CLayerDlg::OnLayerDel()
 
 BOOL CLayerDlg::OnInitDialog() 
 {
-	CExtResizableDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	CRect rc;
 	this->GetClientRect(&rc);
-	rc.top = 21;
-	rc.bottom = 50;
+	// The m_layerListBox is created with hardcoded ID 126.
+	// Its position seems to be adjusted in OnSize relative to the toolbar.
+	// For initial creation, a default rect or a placeholder rect might be fine.
+	// The original rect calculation (rc.top = 21; rc.bottom = 50;) seems very specific
+	// and might be related to how CExtResizableDialog handled client areas or initial sizing.
+	// For CDialogEx, it's usually better to define controls in the resource template or size them in OnSize.
+	// However, to maintain existing logic as much as possible:
+	CRect listRect = rc; // Placeholder, will be resized in OnSize
+	listRect.top = 21; // Keep original intention if it makes sense without Prof-UIS layout
+	listRect.bottom = listRect.top + 100; // Give it some initial height.
 
-	m_layerListBox.Create(WS_CHILD|WS_VISIBLE|LBS_OWNERDRAWVARIABLE|//LBS_NOINTEGRALHEIGHT|
-				LBS_HASSTRINGS|LBS_NOTIFY|WS_VSCROLL, rc, this, 126);
+	m_layerListBox.Create(WS_CHILD|WS_VISIBLE|LBS_OWNERDRAWVARIABLE|
+				LBS_HASSTRINGS|LBS_NOTIFY|WS_VSCROLL|LBS_EXTENDEDSEL, listRect, this, 126);
 
-	CWinApp * pApp = ::AfxGetApp();
+	// CWinApp * pApp = ::AfxGetApp(); // Not used after removing g_CmdManager
 
-	m_Toolbar.LoadToolBar( IDR_ADDTOOLBAR );
-	g_CmdManager->ProfileWndAdd(pApp->m_pszProfileName, m_hWnd);
+	// Toolbar creation for CToolBar
+	if (m_Toolbar.CreateEx(this, TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) &&
+		m_Toolbar.LoadToolBar(IDR_ADDTOOLBAR))
+	{
+		// Toolbar created
+		m_Toolbar.EnableDocking(0); // Typically disable docking for dialog-hosted toolbars
+		// Optional: RepositionBars to make it visible if not done by dialog layout manager
+		// RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
+	}
+	else
+	{
+		TRACE0("Failed to create layer dialog toolbar\n");
+	}
+	// g_CmdManager->ProfileWndAdd(pApp->m_pszProfileName, m_hWnd); // Prof-UIS specific
 
 
 	return TRUE;  // return TRUE unless you set the focus to a control

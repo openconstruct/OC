@@ -1,11 +1,13 @@
 #pragma once
 
 
-#include "..\..\Utilities\anchor.h"
-#include "..\..\Utilities\dlgman.h"
+#include "..\..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
+#include "..\..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include <afxdialogex.h> // Required for CDialogEx
+
 // CEditEventGroup dialog
 
-class CEditEventGroup : public CExtWS<CDialog>
+class CEditEventGroup : public CDialogEx
 {
 	DECLARE_DYNAMIC(CEditEventGroup)
 
@@ -19,11 +21,11 @@ public:
 	CString m_Title;
 	CString m_Description;
 
-	CCtrlMessageBar	tips;
-	CDlgAnchor dlgAnchor;
-	CDlgMan dlgMan;   
+	// CCtrlMessageBar	tips; // Prof-UIS: Functionality will be removed
+	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
 
-	CExtButton m_OK, m_Cancel;
+	CButton m_OK, m_Cancel;
 	BOOL OnInitDialog();
 
 // Dialog Data

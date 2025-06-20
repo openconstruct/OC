@@ -1,12 +1,14 @@
 #pragma once
 #include "afxwin.h"
-#include "afxcmn.h"
+#include "afxcmn.h"     // For CProgressCtrl
+#include "afxwin.h"     // For CStatic (though often included via stdafx or afxdialogex)
 #include "..\resource.h"
+#include <afxdialogex.h> // Required for CDialogEx
 
 
 // CProgressDlg dialog
 
-class CProgressDlg : public CExtNCW<CExtResizableDialog>
+class CProgressDlg : public CDialogEx // Changed base class
 {
 	DECLARE_DYNAMIC(CProgressDlg)
 
@@ -28,8 +30,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CExtLabel m_Status;
-	CProgressCtrl m_Progress;
+	CStatic m_Status;       // Changed from CExtLabel
+	CProgressCtrl m_Progress; // Already standard
 	CString m_StatusText;
 
 	int progress;

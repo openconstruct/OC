@@ -18,10 +18,10 @@ extern CMainFrame* g_MainFrame;
 
 /////////////////////////////////////////////////////////////////////////////
 // TemplateDialog dialog
-
+IMPLEMENT_DYNAMIC(TemplateDialog, CDialogEx) // Added IMPLEMENT_DYNAMIC
 
 TemplateDialog::TemplateDialog(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(TemplateDialog::IDD, pParent)
+	: CDialogEx(TemplateDialog::IDD, pParent) // Changed base class
 {
 	//{{AFX_DATA_INIT(TemplateDialog)
 		// NOTE: the ClassWizard will add member initialization here
@@ -31,7 +31,7 @@ TemplateDialog::TemplateDialog(CWnd* pParent /*=NULL*/)
 
 void TemplateDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	//{{AFX_DATA_MAP(TemplateDialog)
 	DDX_Control(pDX, IDC_TEMPLATES, m_Templates);
 	//DDX_Control(pDX, IDC_PLATFORMS, m_Platforms);
@@ -43,7 +43,7 @@ void TemplateDialog::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(TemplateDialog, CDialog)
+BEGIN_MESSAGE_MAP(TemplateDialog, CDialogEx) // Changed base class
 	//{{AFX_MSG_MAP(TemplateDialog)
 	ON_BN_CLICKED(IDC_CANCEL, OnCancel)
 	ON_BN_CLICKED(IDC_CREATE, OnCreate)
@@ -67,9 +67,9 @@ void TemplateDialog::OnCancel()
 
 BOOL TemplateDialog::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
-	SubclassChildControls();
+	// SubclassChildControls(); // Removed Prof-UIS specific call
 
 	m_Cancel.SetWindowText(CLOSE);
 
@@ -102,13 +102,14 @@ BOOL TemplateDialog::OnInitDialog()
 	doFind = FindFirstFile(findFileDir, &findPlugins);
 
 	m_Templates.InsertColumn(0, _T("Name"), LVCFMT_LEFT, 150);
-	m_Templates.EnableToolTips(TRUE);
+	// m_Templates.EnableToolTips(TRUE); // CExtListCtrl specific, remove for CListCtrl
 
 	// If we can't find files, give an error
 	if (doFind == INVALID_HANDLE_VALUE) 
 	{
-		CErrorDlg error;
-		error.Error("Templates directory missing", "The templates directory has been moved.\nConstruct cannot initialise your templates.");     
+		// CErrorDlg error; // Custom dialog, assumed OK.
+		// error.Error("Templates directory missing", "The templates directory has been moved.\nConstruct cannot initialise your templates.");
+		MessageBox("The templates directory has been moved.\nConstruct cannot initialise your templates.", "Templates directory missing", MB_OK | MB_ICONERROR);
 
 		EndDialog(0);
 	} 

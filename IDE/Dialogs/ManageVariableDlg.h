@@ -1,7 +1,8 @@
 #pragma once
 
-#include "..\Utilities\anchor.h"
-#include "..\Utilities\dlgman.h"
+#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include <afxdialogex.h> // Required for CDialogEx
 
 #include "..\Utilities\Helper.h"
 
@@ -28,13 +29,13 @@ public:
 	CManageVariableDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CManageVariableDlg();
 
-	CExtButton m_Add, m_Remove, m_Edit, m_Close, m_Cancel, m_MoveUp, m_MoveDown;
+	CButton m_Add, m_Remove, m_Edit, m_Close, m_Cancel, m_MoveUp, m_MoveDown; // Changed from CExtButton
 	BOOL OnInitDialog();
 	afx_msg void OnBnClickedAdd();
-	CListCtrl m_List;
+	CListCtrl m_List; // Already standard
 
-	CDlgAnchor dlgAnchor;
-	CDlgMan dlgMan;
+	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
 
 	CObjType* pType;
 	CLayout* layout;

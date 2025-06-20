@@ -7,10 +7,10 @@
 
 // CAddVariableDlg dialog
 
-IMPLEMENT_DYNAMIC(CAddVariableDlg, CDialog)
+IMPLEMENT_DYNAMIC(CAddVariableDlg, CDialogEx) // Changed base class
 
 CAddVariableDlg::CAddVariableDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CAddVariableDlg::IDD, pParent)
+	: CDialogEx(CAddVariableDlg::IDD, pParent) // Changed base class
 {
 	Type = 0;
 	Value = "0";
@@ -22,7 +22,7 @@ CAddVariableDlg::~CAddVariableDlg()
 
 void CAddVariableDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDC_NAME, m_Name);
 	DDX_Control(pDX, IDC_VARIABLE, m_Value);
 	DDX_Control(pDX, IDC_COMBO1, m_Type);
@@ -31,7 +31,7 @@ void CAddVariableDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CAddVariableDlg, CDialog)
+BEGIN_MESSAGE_MAP(CAddVariableDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, &CAddVariableDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
@@ -44,12 +44,8 @@ void CAddVariableDlg::OnBnClickedOk()
 
 	if (Name == "")
 	{
-		tips.Attach(this);
-		tips.SetHighlightOnMouseOver();
-		tips.SetResize();
-		tips.SetWrapText();
-		tips.SetText("Please enter a name for this variable.");
-
+		// CCtrlMessageBar (tips) functionality replaced by MessageBox
+		MessageBox("Please enter a name for this variable.", "Missing Name", MB_OK | MB_ICONEXCLAMATION);
 		return;
 	}
 
@@ -74,7 +70,7 @@ void CAddVariableDlg::OnBnClickedOk()
 
 BOOL CAddVariableDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	if (Caption != "")
 		SetWindowText(Caption);
@@ -83,7 +79,7 @@ BOOL CAddVariableDlg::OnInitDialog()
 	m_Name.SetWindowText(Name);
 	m_Value.SetWindowText(Value);
 
-	SubclassChildControls();
+	// SubclassChildControls(); // Removed Prof-UIS specific call
 
 	return TRUE;
 }

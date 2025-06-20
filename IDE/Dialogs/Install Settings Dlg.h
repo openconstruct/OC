@@ -1,7 +1,8 @@
 #pragma once
 #include "afxwin.h"
+#include <afxdialogex.h> // Required for CDialogEx
 
-class CInstallSettingsDlg : public CExtNCW<CExtResizableDialog>
+class CInstallSettingsDlg : public CDialogEx // Changed base class
 {
 	DECLARE_DYNAMIC(CInstallSettingsDlg)
 
@@ -16,8 +17,8 @@ public:
 	afx_msg void OnBnClickedOk();
 
 	// Controls
-	CExtButton		m_OK;
-	CExtButton		m_Cancel;
+	CButton		m_OK;     // Changed from CExtButton
+	CButton		m_Cancel; // Changed from CExtButton
 	CEdit			m_License;
 	CComboBox		m_OS;
 	CButton			m_Fullscreen;

@@ -31,7 +31,7 @@ static char THIS_FILE[] = __FILE__;
 
 
 CFirstStartDlg::CFirstStartDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CFirstStartDlg::IDD, pParent)
+	: CDialogEx(CFirstStartDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CFirstStartDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -40,7 +40,7 @@ CFirstStartDlg::CFirstStartDlg(CWnd* pParent /*=NULL*/)
 
 void CFirstStartDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CFirstStartDlg)
 	DDX_Control(pDX, IDC_INFOTEXT, m_Information);
 	DDX_Control(pDX, IDC_HHELP, m_Help);
@@ -49,7 +49,7 @@ void CFirstStartDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CFirstStartDlg, CDialog)
+BEGIN_MESSAGE_MAP(CFirstStartDlg, CDialogEx)
 	//{{AFX_MSG_MAP(CFirstStartDlg)
 	ON_BN_CLICKED(IDC_DONE, OnDone)
 	ON_CBN_SELCHANGE(IDC_LANGUAGE, OnChangeLanguage)
@@ -71,7 +71,7 @@ void CFirstStartDlg::OnDone()
 
 BOOL CFirstStartDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 	
 	// Default settings
 	showMaximized = "0";

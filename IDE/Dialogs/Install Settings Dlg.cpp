@@ -7,10 +7,10 @@
 #include "Install Settings Dlg.h"
 
 // CInstallSettingsDlg dialog
-IMPLEMENT_DYNAMIC(CInstallSettingsDlg, CDialog)
+IMPLEMENT_DYNAMIC(CInstallSettingsDlg, CDialogEx) // Changed base class
 
 CInstallSettingsDlg::CInstallSettingsDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CInstallSettingsDlg::IDD, pParent)
+	: CDialogEx(CInstallSettingsDlg::IDD, pParent) // Changed base class
 {
 	m_OSSetting = 0;
 }
@@ -21,7 +21,7 @@ CInstallSettingsDlg::~CInstallSettingsDlg()
 
 void CInstallSettingsDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDC_LICENSE, m_License);
@@ -30,7 +30,7 @@ void CInstallSettingsDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PATH, m_InstallPath);
 }
 
-BEGIN_MESSAGE_MAP(CInstallSettingsDlg, CDialog)
+BEGIN_MESSAGE_MAP(CInstallSettingsDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, &CInstallSettingsDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
@@ -38,14 +38,14 @@ END_MESSAGE_MAP()
 BOOL CInstallSettingsDlg::OnInitDialog() 
 {
 	// Startup
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_OS.SetCurSel(m_OSSetting);
 	m_License.SetWindowText(m_LicenseText);
 	m_InstallPath.SetWindowText(m_Path);
 	if (m_bFullscreen) m_Fullscreen.SetCheck(BST_CHECKED);
 
-	SubclassChildControls();
+	// SubclassChildControls(); // Removed Prof-UIS specific call
 
 	return TRUE;
 }

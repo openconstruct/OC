@@ -7,10 +7,10 @@
 
 // CAngleDlg dialog
 
-IMPLEMENT_DYNAMIC(CAngleDlg, CDialog)
+IMPLEMENT_DYNAMIC(CAngleDlg, CDialogEx) // Changed base class
 
 CAngleDlg::CAngleDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CAngleDlg::IDD, pParent)
+	: CDialogEx(CAngleDlg::IDD, pParent) // Changed base class
 {
 
 }
@@ -21,13 +21,13 @@ CAngleDlg::~CAngleDlg()
 
 void CAngleDlg::DoDataExchange(CDataExchange* pDX)
 {
-CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDCANCEL, m_Cancel);
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDC_ANGLES, m_AddAngles);
 }
 
-BEGIN_MESSAGE_MAP(CAngleDlg, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(CAngleDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, &CAngleDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
@@ -37,12 +37,12 @@ void CAngleDlg::OnBnClickedOk()
 	m_AddAngles.GetWindowText(text);
 	m_Angles.push_back(atof(text));
 
-	CDialog::OnOK();
+	CDialogEx::OnOK(); // Changed base class
 }
 
 BOOL CAngleDlg::OnInitDialog() 
 {
-	CExtResizableDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	m_OK.SetWindowText(ADD);
 	m_Cancel.SetWindowText(CANCEL);

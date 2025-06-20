@@ -8,10 +8,10 @@
 #include "..\Editors\Event Sheet Editor\Event Sheet Editor.h"
 
 // CFindReplaceDlg dialog
-IMPLEMENT_DYNAMIC(CFindReplaceDlg, CDialog)
+IMPLEMENT_DYNAMIC(CFindReplaceDlg, CDialogEx)
 
 CFindReplaceDlg::CFindReplaceDlg(CWnd* pParent /*=NULL*/) 
-: CExtWS<CDialog>(CFindReplaceDlg::IDD, pParent)
+: CDialogEx(CFindReplaceDlg::IDD, pParent)
 {
 
 }
@@ -35,10 +35,10 @@ void CFindReplaceDlg::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_RESULTS, m_List);
 
-	CExtWS<CDialog>::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CFindReplaceDlg, CExtWS<CDialog>)
+BEGIN_MESSAGE_MAP(CFindReplaceDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_SEARCH, CFindReplaceDlg::OnBnClickedSearch)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 
 BOOL CFindReplaceDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
 	// List
 	m_List.InsertColumn(0, "Line", 0, 40);
@@ -211,12 +211,15 @@ void CFindReplaceDlg::DoSearch(CEditorEvent* pEvent, int& Number)
 
 void CFindReplaceDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy);
+	// dlgAnchor and dlgMan related calls would be here if they were used for dynamic resizing based on OnSize
+	// For now, leaving as is, as their full refactoring is out of scope.
 }
 
 void CFindReplaceDlg::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy();
+	// dlgMan.Save() might be here if used.
 }
 
 void CFindReplaceDlg::OnNMDblclkResults(NMHDR *pNMHDR, LRESULT *pResult)

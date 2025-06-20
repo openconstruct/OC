@@ -10,11 +10,13 @@
 /////////////////////////////////////////////////////////////////////////////
 // CAddCommentDlg dialog
 
-#include "..\Utilities\anchor.h"
-#include "..\Utilities\dlgman.h"
+#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include <afxdialogex.h> // Required for CDialogEx
 
-class CAddCommentDlg : public CExtNCW<CExtResizableDialog>
+class CAddCommentDlg : public CDialogEx // Changed base class
 {
+	DECLARE_DYNAMIC(CAddCommentDlg) // Added DECLARE_DYNAMIC
 // Construction
 public:
 	CAddCommentDlg(CWnd* pParent = NULL);   // standard constructor
@@ -22,11 +24,11 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CAddCommentDlg)
 	enum { IDD = IDD_ECOMMENT };
-	CExtButton m_Font;
-	CEdit m_Comment;
-	CExtButton m_Color;
-	CExtButton m_Close;
-	CExtButton m_Add;
+	CButton m_Font;    // Changed from CExtButton
+	CEdit m_Comment;   // Already standard
+	CButton m_Color;   // Changed from CExtButton
+	CButton m_Close;   // Changed from CExtButton
+	CButton m_Add;     // Changed from CExtButton
 	//}}AFX_DATA
 
 	CString theComment;
@@ -39,8 +41,8 @@ public:
 	LOGFONT lf;
 
 	// Resizable
-	CDlgAnchor dlgAnchor;
-	CDlgMan dlgMan;   
+	CDlgAnchor dlgAnchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgMan dlgMan;       // Potentially Prof-UIS or other 3rd party - left for now
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnDestroy();
 

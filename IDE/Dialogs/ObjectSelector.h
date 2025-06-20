@@ -1,10 +1,11 @@
 #pragma once
 
-#include "..\UI Elements\GroupListCtrl.h"
-#include "..\Utilities\anchor.h"
-#include "..\Utilities\dlgman.h"
+#include "..\UI Elements\GroupListCtrl.h" // CGroupListCtrl - Custom, assumed to be CListCtrl compatible or separately refactored
+#include "..\Utilities\anchor.h" // CDlgAnchor - Potentially Prof-UIS or other 3rd party
+#include "..\Utilities\dlgman.h"   // CDlgMan - Potentially Prof-UIS or other 3rd party
+#include <afxdialogex.h> // Required for CDialogEx
 
-class ObjectSelectorDialog : public CExtNCW<CExtResizableDialog>
+class ObjectSelectorDialog : public CDialogEx // Changed base class
 {
 	DECLARE_DYNAMIC(ObjectSelectorDialog)
 
@@ -22,11 +23,11 @@ public:
 	bool			show_attributes;
 	int				exclude;
 
-	CImageList		images;
-	CGroupListCtrl	objects;
-	CExtButton		ok, cancel;
-	CDlgAnchor		dialog_anchor;
-	CDlgMan			dialog_manager;   
+	CImageList		images;    // Already standard
+	CGroupListCtrl	objects;   // Custom control, leave as is
+	CButton		ok, cancel;    // Changed from CExtButton
+	CDlgAnchor		dialog_anchor; // Potentially Prof-UIS or other 3rd party - left for now
+	CDlgMan			dialog_manager;   // Potentially Prof-UIS or other 3rd party - left for now
 
 	class SelectedObject
 	{

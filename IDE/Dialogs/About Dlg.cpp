@@ -9,24 +9,28 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-CAboutDlg::CAboutDlg() : CExtNCW<CExtResizableDialog>(CAboutDlg::IDD)
+CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD, nullptr)
 {
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_PEOPLE, m_People);
 	DDX_Control(pDX, IDC_BUILD, m_BuildDate);
 	DDX_Control(pDX, IDOK, m_OK);
+	// Assuming m_Group is for IDC_GROUPBOX1 or a similar ID if it exists in the RC file
+	// If IDC_GROUP is not defined or m_Group is not used, this line can be removed.
+	// For now, I'll comment it out as IDC_GROUP is not standard and may not exist.
+	// DDX_Control(pDX, IDC_GROUP, m_Group);
 }
 
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 BOOL CAboutDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
 	// Get this process filename
 	CString filePath;
@@ -69,7 +73,7 @@ BOOL CAboutDlg::OnInitDialog()
 	// Set texts
 	SetDlgItemText(IDC_PRODUCTVERSION, productVersion);
 
-	SubclassChildControls();
+	// SubclassChildControls(); // Removed Prof-UIS specific call
 
 	return true;
 }

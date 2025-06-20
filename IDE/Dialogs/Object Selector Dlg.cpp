@@ -4,7 +4,7 @@
 #include "ObjectSelector.h"
 
 // ObjectSelectorDialog dialog
-IMPLEMENT_DYNAMIC(ObjectSelectorDialog, CDialog)
+IMPLEMENT_DYNAMIC(ObjectSelectorDialog, CDialogEx) // Changed base class
 
 bool ObjectTypeSortFunction(const CObjType* typeA, const CObjType* typeB)
 {
@@ -18,7 +18,7 @@ bool ObjectTypeSortFunction(const CObjType* typeA, const CObjType* typeB)
 }
 
 ObjectSelectorDialog::ObjectSelectorDialog(CApplication* application_, CLayout* layout_, CString previous_, int dll_filter_, bool show_families_, bool show_attributes_, int exclude_)
-	: CExtNCW<CExtResizableDialog>(ObjectSelectorDialog::IDD, NULL),
+	: CDialogEx(ObjectSelectorDialog::IDD, NULL), // Changed base class
 	application(application_),
 	layout(layout_),
 	show_families(show_families_),
@@ -32,13 +32,13 @@ ObjectSelectorDialog::ObjectSelectorDialog(CApplication* application_, CLayout* 
 
 void ObjectSelectorDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDC_OBJECTLIST, objects);
 	DDX_Control(pDX, IDOK, ok);
 	DDX_Control(pDX, IDCANCEL, cancel);
 }
 
-BEGIN_MESSAGE_MAP(ObjectSelectorDialog, CExtNCW<CExtResizableDialog>)
+BEGIN_MESSAGE_MAP(ObjectSelectorDialog, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDOK, &ObjectSelectorDialog::OnBnClickedOk)
 	ON_NOTIFY(NM_DBLCLK, IDC_OBJECTLIST, &ObjectSelectorDialog::OnNMDblclkList)
 	ON_WM_SIZE()
@@ -48,13 +48,13 @@ END_MESSAGE_MAP()
 // ObjectSelectorDialog message handlers
 BOOL ObjectSelectorDialog::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 
 	images.DeleteImageList();
 	images.Create(16, 16, ILC_COLOR24, 3, 3);
 	objects.SetImageList(&images, LVSIL_NORMAL);
 
-	// Resizing anchors
+	// Resizing anchors - dialog_manager and dialog_anchor are potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_manager.Load(this->m_hWnd, "Software\\Construct\\ObjectSelectorDialog");
     dialog_anchor.Init(this->m_hWnd);
 
@@ -256,14 +256,16 @@ void ObjectSelectorDialog::OnBnClickedOk()
 
 void ObjectSelectorDialog::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
+	CDialogEx::OnSize(nType, cx, cy); // Changed base class
 	
+	// dialog_anchor is potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_anchor.OnSize();	
 }
 
 void ObjectSelectorDialog::OnDestroy() 
 {
-	CDialog::OnDestroy();
+	CDialogEx::OnDestroy(); // Changed base class
 	
+	// dialog_manager is potentially Prof-UIS or other 3rd party. Left for now.
 	dialog_manager.Save();	
 }

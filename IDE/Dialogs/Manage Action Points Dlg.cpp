@@ -8,10 +8,10 @@
 
 // CManageActionPointsDlg dialog
 
-IMPLEMENT_DYNAMIC(CManageActionPointsDlg, CDialog)
+IMPLEMENT_DYNAMIC(CManageActionPointsDlg, CDialogEx) // Changed base class
 
 CManageActionPointsDlg::CManageActionPointsDlg(CWnd* pParent /*=NULL*/)
-	: CExtNCW<CExtResizableDialog>(CManageActionPointsDlg::IDD, pParent)
+	: CDialogEx(CManageActionPointsDlg::IDD, pParent) // Changed base class
 {
 
 }
@@ -22,18 +22,20 @@ CManageActionPointsDlg::~CManageActionPointsDlg()
 
 void CManageActionPointsDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(pDX); // Changed base class
 	DDX_Control(pDX, IDC_LIST1, m_ActionPointsList);
 	DDX_Control(pDX, IDC_EDIT1, m_ActionName_edit);
 
 	DDX_Control(pDX, IDC_ADD, m_Add);
 	DDX_Control(pDX, IDOK, m_OK);
 	DDX_Control(pDX, IDC_REMOVE, m_Remove);
-
+	// Note: m_Cancel is declared in header but not in DDX_Control here.
+	// If it's a standard IDCANCEL button, CDialog(Ex) handles it by default.
+	// If it's a custom button, it would need DDX_Control(pDX, IDCANCEL_OR_CUSTOM_ID, m_Cancel);
 }
 
 
-BEGIN_MESSAGE_MAP(CManageActionPointsDlg, CDialog)
+BEGIN_MESSAGE_MAP(CManageActionPointsDlg, CDialogEx) // Changed base class
 	ON_BN_CLICKED(IDC_ADD, &CManageActionPointsDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_REMOVE, &CManageActionPointsDlg::OnRemove)
 END_MESSAGE_MAP()
@@ -108,8 +110,8 @@ void CManageActionPointsDlg::UpdateList()
 
 BOOL CManageActionPointsDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog(); // Changed base class
 	UpdateList();
-	SubclassChildControls();
-	return 0;
+	// SubclassChildControls(); // Removed Prof-UIS specific call
+	return TRUE; // Typically return TRUE if focus not set manually
 }
